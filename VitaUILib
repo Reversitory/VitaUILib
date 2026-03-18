@@ -1177,6 +1177,8 @@ function Vita:CreateWindow(Title, Size, ThemeName)
         local contentAreaHeight = self.Size.Y - startY - 20  -- Available content area
         local scrollOffset = window.ScrollOffset or 0
 
+        -- First pass: calculate all positions without scroll offset
+        local sectionPositions = {}
         for _, s in ipairs(self.Sections) do
             if s.Tab == TabName then
                 -- Better wrapping logic
@@ -1186,46 +1188,65 @@ function Vita:CreateWindow(Title, Size, ThemeName)
                     maxH = 0
                 end
                 
-                s.Frame.Position = self.Pos + Vector2.new(curX, curY - scrollOffset)
-                s.Title.Position = s.Frame.Position + Vector2.new(5, -18)
+                sectionPositions[s] = {X = curX, Y = curY}
                 
+                -- Calculate internal content height
                 local lY = 8  -- Slightly more internal padding
-                local lastLabelPos = nil
-                local lastSquarePos = nil
-                local lastSquareSize = nil
-
                 for _, item in ipairs(s.ContentDrawings) do
-                    local d = item.Obj
                     if item.Type == "ButtonFrame" or item.Type == "SliderFrame" then
-                        d.Position = s.Frame.Position + Vector2.new(10, lY)
-                        lastSquarePos = d.Position
-                        lastSquareSize = d.Size
                         lY = lY + (item.Height or 24)  -- Reduced spacing
                     elseif item.Type == "Label" then
-                        d.Position = s.Frame.Position + Vector2.new(10, lY)
-                        lastLabelPos = d.Position
                         lY = lY + (item.Height or 16)  -- Reduced spacing
-                    elseif item.Type == "ToggleFrame" then
-                        if lastLabelPos then
-                            d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
-                        end
-                    elseif item.Type == "ButtonText" or item.Type == "KeybindText" then
-                        if item.Center and lastSquarePos then
-                            d.Position = Vector2.new(lastSquarePos.X + (lastSquareSize.X / 2), lastSquarePos.Y + (lastSquareSize.Y / 2))
-                        end
-                    elseif item.Type == "KeybindFrame" then
-                        if lastLabelPos then
-                            d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
-                            lastSquarePos = d.Position
-                            lastSquareSize = d.Size
-                        end
                     end
                 end
                 
-                s.Frame.Size = Vector2.new(s.Width, lY + 5)
-                if s.Frame.Size.Y > maxH then maxH = s.Frame.Size.Y end
+                local sectionHeight = lY + 5
+                if sectionHeight > maxH then maxH = sectionHeight end
                 curX = curX + s.Width + padding
             end
+        end
+        
+        -- Second pass: apply positions with scroll offset
+        for s, pos in pairs(sectionPositions) do
+            local actualY = pos.Y - scrollOffset
+            s.Frame.Position = self.Pos + Vector2.new(pos.X, actualY)
+            s.Title.Position = s.Frame.Position + Vector2.new(5, -18)
+            
+            -- Update content positions
+            local lY = 8
+            local lastLabelPos = nil
+            local lastSquarePos = nil
+            local lastSquareSize = nil
+
+            for _, item in ipairs(s.ContentDrawings) do
+                local d = item.Obj
+                if item.Type == "ButtonFrame" or item.Type == "SliderFrame" then
+                    d.Position = s.Frame.Position + Vector2.new(10, lY)
+                    lastSquarePos = d.Position
+                    lastSquareSize = d.Size
+                    lY = lY + (item.Height or 24)
+                elseif item.Type == "Label" then
+                    d.Position = s.Frame.Position + Vector2.new(10, lY)
+                    lastLabelPos = d.Position
+                    lY = lY + (item.Height or 16)
+                elseif item.Type == "ToggleFrame" then
+                    if lastLabelPos then
+                        d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
+                    end
+                elseif item.Type == "ButtonText" or item.Type == "KeybindText" then
+                    if item.Center and lastSquarePos then
+                        d.Position = Vector2.new(lastSquarePos.X + (lastSquareSize.X / 2), lastSquarePos.Y + (lastSquareSize.Y / 2))
+                    end
+                elseif item.Type == "KeybindFrame" then
+                    if lastLabelPos then
+                        d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
+                        lastSquarePos = d.Position
+                        lastSquareSize = d.Size
+                    end
+                end
+            end
+            
+            s.Frame.Size = Vector2.new(s.Width, lY + 5)
         end
         
         -- Calculate total content height for scrolling
@@ -1238,47 +1259,75 @@ function Vita:CreateWindow(Title, Size, ThemeName)
         local wasD, drag, dsm, dsp, dragK, dsmK, dspK = false, false, nil, nil, false, nil, nil
         window.ScrollOffset = 0
         local scrollSpeed = 3
+        local lastScrollTime = 0
         while true do
             local d, mp = ismouse1pressed() , getMousePos()
+            local currentTime = tick()
+            
             if Vita.IsOpen then
-                -- Scrolling functionality
-                local contentArea = Vector2.new(window.Size.X - 170, window.Size.Y - 90)
-                local contentPos = window.Pos + Vector2.new(170, 70)
-                
-                if isMouseOver(contentPos, contentArea) then
-                    local wheelDelta = getMouseWheelDelta() or 0
-                    if wheelDelta ~= 0 then
-                        local maxScroll = math.max(0, (window.TotalContentHeight or 0) - contentArea.Y)
-                        window.ScrollOffset = math.clamp(window.ScrollOffset - wheelDelta * scrollSpeed, 0, maxScroll)
-                        window:RelayoutTab(window.CurrentTab)
+                -- Handle scrolling (with throttling)
+                if currentTime - lastScrollTime > 0.1 then
+                    local contentArea = Vector2.new(window.Size.X - 170, window.Size.Y - 90)
+                    local contentPos = window.Pos + Vector2.new(170, 70)
+                    
+                    if isMouseOver(contentPos, contentArea) then
+                        local wheelDelta = getMouseWheelDelta() or 0
+                        if wheelDelta ~= 0 then
+                            local maxScroll = math.max(0, (window.TotalContentHeight or 0) - contentArea.Y)
+                            window.ScrollOffset = math.clamp(window.ScrollOffset - wheelDelta * scrollSpeed, 0, maxScroll)
+                            window:RelayoutTab(window.CurrentTab)
+                            lastScrollTime = currentTime
+                        end
                     end
                 end
                 
-                if d and not wasD and isMouseOver(window.Pos, Vector2.new(window.Size.X, 50)) then drag = true; dsm = mp; dsp = window.Pos end
+                -- Handle window dragging
+                if d and not wasD and isMouseOver(window.Pos, Vector2.new(window.Size.X, 50)) then 
+                    drag = true; dsm = mp; dsp = window.Pos 
+                end
                 if not d then drag = false end
                 if drag then window:Move((dsp + (mp - dsm)) - window.Pos) end
                 
-                if d and not wasD and isMouseOver(KeybindList.MainFrame.Position, Vector2.new(KeybindList.MainFrame.Size.X, 25)) then dragK = true; dsmK = mp; dspK = KeybindList.MainFrame.Position end
+                -- Handle keybind list dragging
+                if d and not wasD and isMouseOver(KeybindList.MainFrame.Position, Vector2.new(KeybindList.MainFrame.Size.X, 25)) then 
+                    dragK = true; dsmK = mp; dspK = KeybindList.MainFrame.Position 
+                end
                 if not d then dragK = false end
                 if dragK then 
                     local delta = (dspK + (mp - dsmK)) - KeybindList.MainFrame.Position
-                    KeybindList.MainFrame.Position = KeybindList.MainFrame.Position + delta; KeybindList.Title.Position = KeybindList.Title.Position + delta
+                    KeybindList.MainFrame.Position = KeybindList.MainFrame.Position + delta
+                    KeybindList.Title.Position = KeybindList.Title.Position + delta
                 end
                 
+                -- Handle tab clicking
                 for _, tab in tabs do
                     if isMouseOver(tab.Position, tab.Size) then
-                        if window.CurrentTab ~= tab.Name then tab.Text.Color = Color3.fromRGB(200, 200, 200) end
+                        if window.CurrentTab ~= tab.Name then 
+                            tab.Text.Color = Color3.fromRGB(200, 200, 200) 
+                        end
                         if d and not wasD then 
-                            for _, t in ipairs(tabs) do t.Text.Color = theme.TextDark end
-                            tab.Text.Color = theme.Text; window.CurrentTab = tab.Name; window.TargetSelectorY = tab.RelativeY; window:UpdateVisibility() 
+                            for _, t in ipairs(tabs) do 
+                                t.Text.Color = theme.TextDark 
+                            end
+                            tab.Text.Color = theme.Text
+                            window.CurrentTab = tab.Name
+                            window.TargetSelectorY = tab.RelativeY
+                            window:UpdateVisibility() 
                             window.ScrollOffset = 0  -- Reset scroll when switching tabs
                             window:RelayoutTab(window.CurrentTab)
                         end
-                    elseif window.CurrentTab ~= tab.Name then tab.Text.Color = theme.TextDark end
+                    elseif window.CurrentTab ~= tab.Name then 
+                        tab.Text.Color = theme.TextDark 
+                    end
                 end
             end
-            window.CurrentSelectorY = lerp(window.CurrentSelectorY, window.TargetSelectorY, 0.15); window.GlobalSelector.Position = Vector2.new(window.Pos.X, window.Pos.Y + window.CurrentSelectorY)
-            wasD = d; wait(0.01)
+            
+            -- Update selector position
+            window.CurrentSelectorY = lerp(window.CurrentSelectorY, window.TargetSelectorY, 0.15)
+            window.GlobalSelector.Position = Vector2.new(window.Pos.X, window.Pos.Y + window.CurrentSelectorY)
+            
+            wasD = d
+            wait(0.01)
         end
     end)
 
