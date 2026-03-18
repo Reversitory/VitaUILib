@@ -1254,3 +1254,6 @@ function Vita:CreateWindow(Title, Size, ThemeName)
     end
     return window
 end
+
+-- Return the Vita table for external use
+return Vita
