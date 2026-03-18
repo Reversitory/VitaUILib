@@ -185,6 +185,18 @@ local function isMouseOver(pos, size)
     and m.Y >= pos.Y and m.Y <= pos.Y + size.Y
 end
 
+local function getMouseWheelDelta()
+    -- This is a simplified version - in a real implementation you'd hook into mouse events
+    -- For now, we'll use keyboard scroll as fallback
+    local delta = 0
+    if iskey1pressed(0x21) then -- Page Up
+        delta = 10
+    elseif iskey1pressed(0x22) then -- Page Down
+        delta = -10
+    end
+    return delta
+end
+
 local KeyCodeNames = {
     ["None"] = 0, ["Enter"] = 0x0D, ["Space"] = 0x20, ["Backspace"] = 0x08,
     ["0"] = 0x30, ["1"] = 0x31, ["2"] = 0x32, ["3"] = 0x33, ["4"] = 0x34, 
@@ -1160,21 +1172,24 @@ function Vita:CreateWindow(Title, Size, ThemeName)
     end
 
     function window:RelayoutTab(TabName)
-        local startX, startY, padding = 170, 30, 15
+        local startX, startY, padding = 170, 70, 10  -- Start lower, reduce padding
         local curX, curY, maxH = startX, startY, 0
+        local contentAreaHeight = self.Size.Y - startY - 20  -- Available content area
+        local scrollOffset = window.ScrollOffset or 0
 
         for _, s in ipairs(self.Sections) do
             if s.Tab == TabName then
+                -- Better wrapping logic
                 if curX + s.Width > self.Size.X - 20 then 
                     curX = startX
-                    curY = curY + maxH + 30
+                    curY = curY + maxH + 15  -- Reduced spacing
                     maxH = 0
                 end
                 
-                s.Frame.Position = self.Pos + Vector2.new(curX, curY)
+                s.Frame.Position = self.Pos + Vector2.new(curX, curY - scrollOffset)
                 s.Title.Position = s.Frame.Position + Vector2.new(5, -18)
                 
-                local lY = 5
+                local lY = 8  -- Slightly more internal padding
                 local lastLabelPos = nil
                 local lastSquarePos = nil
                 local lastSquareSize = nil
@@ -1185,11 +1200,11 @@ function Vita:CreateWindow(Title, Size, ThemeName)
                         d.Position = s.Frame.Position + Vector2.new(10, lY)
                         lastSquarePos = d.Position
                         lastSquareSize = d.Size
-                        lY = lY + (item.Height or 26)
+                        lY = lY + (item.Height or 24)  -- Reduced spacing
                     elseif item.Type == "Label" then
                         d.Position = s.Frame.Position + Vector2.new(10, lY)
                         lastLabelPos = d.Position
-                        lY = lY + (item.Height or 18)
+                        lY = lY + (item.Height or 16)  -- Reduced spacing
                     elseif item.Type == "ToggleFrame" then
                         if lastLabelPos then
                             d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
@@ -1212,13 +1227,33 @@ function Vita:CreateWindow(Title, Size, ThemeName)
                 curX = curX + s.Width + padding
             end
         end
+        
+        -- Calculate total content height for scrolling
+        local totalHeight = curY + maxH
+        window.TotalContentHeight = totalHeight
+        window.ContentAreaHeight = contentAreaHeight
     end
 
     spawn(function()
         local wasD, drag, dsm, dsp, dragK, dsmK, dspK = false, false, nil, nil, false, nil, nil
+        window.ScrollOffset = 0
+        local scrollSpeed = 3
         while true do
             local d, mp = ismouse1pressed() , getMousePos()
             if Vita.IsOpen then
+                -- Scrolling functionality
+                local contentArea = Vector2.new(window.Size.X - 170, window.Size.Y - 90)
+                local contentPos = window.Pos + Vector2.new(170, 70)
+                
+                if isMouseOver(contentPos, contentArea) then
+                    local wheelDelta = getMouseWheelDelta() or 0
+                    if wheelDelta ~= 0 then
+                        local maxScroll = math.max(0, (window.TotalContentHeight or 0) - contentArea.Y)
+                        window.ScrollOffset = math.clamp(window.ScrollOffset - wheelDelta * scrollSpeed, 0, maxScroll)
+                        window:RelayoutTab(window.CurrentTab)
+                    end
+                end
+                
                 if d and not wasD and isMouseOver(window.Pos, Vector2.new(window.Size.X, 50)) then drag = true; dsm = mp; dsp = window.Pos end
                 if not d then drag = false end
                 if drag then window:Move((dsp + (mp - dsm)) - window.Pos) end
@@ -1236,6 +1271,8 @@ function Vita:CreateWindow(Title, Size, ThemeName)
                         if d and not wasD then 
                             for _, t in ipairs(tabs) do t.Text.Color = theme.TextDark end
                             tab.Text.Color = theme.Text; window.CurrentTab = tab.Name; window.TargetSelectorY = tab.RelativeY; window:UpdateVisibility() 
+                            window.ScrollOffset = 0  -- Reset scroll when switching tabs
+                            window:RelayoutTab(window.CurrentTab)
                         end
                     elseif window.CurrentTab ~= tab.Name then tab.Text.Color = theme.TextDark end
                 end
