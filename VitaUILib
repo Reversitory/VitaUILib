@@ -1172,113 +1172,93 @@ function Vita:CreateWindow(Title, Size, ThemeName)
     end
 
     function window:RelayoutTab(TabName)
-        local startX, startY, padding = 170, 70, 10  -- Start lower, reduce padding
+        local startX, startY, padding = 170, 70, 8  -- Start lower, reduce padding further
         local curX, curY, maxH = startX, startY, 0
-        local contentAreaHeight = self.Size.Y - startY - 20  -- Available content area
+        local contentAreaHeight = self.Size.Y - startY - 20
         local scrollOffset = window.ScrollOffset or 0
 
-        -- First pass: calculate all positions without scroll offset
-        local sectionPositions = {}
+        -- Simple layout: place sections in a single column for now
         for _, s in ipairs(self.Sections) do
             if s.Tab == TabName then
-                -- Better wrapping logic
-                if curX + s.Width > self.Size.X - 20 then 
-                    curX = startX
-                    curY = curY + maxH + 15  -- Reduced spacing
-                    maxH = 0
-                end
-                
-                sectionPositions[s] = {X = curX, Y = curY}
-                
-                -- Calculate internal content height
-                local lY = 8  -- Slightly more internal padding
+                -- Calculate section height based on content
+                local sectionHeight = 30  -- Base height for title
                 for _, item in ipairs(s.ContentDrawings) do
                     if item.Type == "ButtonFrame" or item.Type == "SliderFrame" then
-                        lY = lY + (item.Height or 24)  -- Reduced spacing
+                        sectionHeight = sectionHeight + (item.Height or 26)
                     elseif item.Type == "Label" then
-                        lY = lY + (item.Height or 16)  -- Reduced spacing
+                        sectionHeight = sectionHeight + (item.Height or 18)
+                    elseif item.Type == "Dropdown" then
+                        sectionHeight = sectionHeight + 28
+                    elseif item.Type == "KeybindFrame" then
+                        sectionHeight = sectionHeight + 22
                     end
                 end
                 
-                local sectionHeight = lY + 5
-                if sectionHeight > maxH then maxH = sectionHeight end
-                curX = curX + s.Width + padding
-            end
-        end
-        
-        -- Second pass: apply positions with scroll offset
-        for s, pos in pairs(sectionPositions) do
-            local actualY = pos.Y - scrollOffset
-            s.Frame.Position = self.Pos + Vector2.new(pos.X, actualY)
-            s.Title.Position = s.Frame.Position + Vector2.new(5, -18)
-            
-            -- Update content positions
-            local lY = 8
-            local lastLabelPos = nil
-            local lastSquarePos = nil
-            local lastSquareSize = nil
+                -- Position section
+                s.Frame.Position = self.Pos + Vector2.new(startX, curY - scrollOffset)
+                s.Title.Position = s.Frame.Position + Vector2.new(5, -18)
+                s.Frame.Size = Vector2.new(s.Width, sectionHeight)
+                
+                -- Position content within section
+                local lY = 8
+                local lastLabelPos = nil
+                local lastSquarePos = nil
+                local lastSquareSize = nil
 
-            for _, item in ipairs(s.ContentDrawings) do
-                local d = item.Obj
-                if item.Type == "ButtonFrame" or item.Type == "SliderFrame" then
-                    d.Position = s.Frame.Position + Vector2.new(10, lY)
-                    lastSquarePos = d.Position
-                    lastSquareSize = d.Size
-                    lY = lY + (item.Height or 24)
-                elseif item.Type == "Label" then
-                    d.Position = s.Frame.Position + Vector2.new(10, lY)
-                    lastLabelPos = d.Position
-                    lY = lY + (item.Height or 16)
-                elseif item.Type == "ToggleFrame" then
-                    if lastLabelPos then
-                        d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
-                    end
-                elseif item.Type == "ButtonText" or item.Type == "KeybindText" then
-                    if item.Center and lastSquarePos then
-                        d.Position = Vector2.new(lastSquarePos.X + (lastSquareSize.X / 2), lastSquarePos.Y + (lastSquareSize.Y / 2))
-                    end
-                elseif item.Type == "KeybindFrame" then
-                    if lastLabelPos then
-                        d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
+                for _, item in ipairs(s.ContentDrawings) do
+                    local d = item.Obj
+                    if item.Type == "ButtonFrame" or item.Type == "SliderFrame" then
+                        d.Position = s.Frame.Position + Vector2.new(10, lY)
                         lastSquarePos = d.Position
                         lastSquareSize = d.Size
+                        lY = lY + (item.Height or 26)
+                    elseif item.Type == "Label" then
+                        d.Position = s.Frame.Position + Vector2.new(10, lY)
+                        lastLabelPos = d.Position
+                        lY = lY + (item.Height or 18)
+                    elseif item.Type == "ToggleFrame" then
+                        if lastLabelPos then
+                            d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
+                        end
+                    elseif item.Type == "ButtonText" or item.Type == "KeybindText" then
+                        if item.Center and lastSquarePos then
+                            d.Position = Vector2.new(lastSquarePos.X + (lastSquareSize.X / 2), lastSquarePos.Y + (lastSquareSize.Y / 2))
+                        end
+                    elseif item.Type == "KeybindFrame" then
+                        if lastLabelPos then
+                            d.Position = Vector2.new(s.Frame.Position.X + s.Width - d.Size.X - 10, lastLabelPos.Y)
+                            lastSquarePos = d.Position
+                            lastSquareSize = d.Size
+                        end
                     end
                 end
+                
+                -- Move to next position with smaller gap
+                curY = curY + sectionHeight + 5  -- Much smaller gap
+                if sectionHeight > maxH then maxH = sectionHeight end
             end
-            
-            s.Frame.Size = Vector2.new(s.Width, lY + 5)
         end
         
         -- Calculate total content height for scrolling
-        local totalHeight = curY + maxH
-        window.TotalContentHeight = totalHeight
+        window.TotalContentHeight = curY
         window.ContentAreaHeight = contentAreaHeight
     end
 
     spawn(function()
         local wasD, drag, dsm, dsp, dragK, dsmK, dspK = false, false, nil, nil, false, nil, nil
         window.ScrollOffset = 0
-        local scrollSpeed = 3
-        local lastScrollTime = 0
+        local scrollSpeed = 5
         while true do
             local d, mp = ismouse1pressed() , getMousePos()
-            local currentTime = tick()
             
             if Vita.IsOpen then
-                -- Handle scrolling (with throttling)
-                if currentTime - lastScrollTime > 0.1 then
-                    local contentArea = Vector2.new(window.Size.X - 170, window.Size.Y - 90)
-                    local contentPos = window.Pos + Vector2.new(170, 70)
-                    
-                    if isMouseOver(contentPos, contentArea) then
-                        local wheelDelta = getMouseWheelDelta() or 0
-                        if wheelDelta ~= 0 then
-                            local maxScroll = math.max(0, (window.TotalContentHeight or 0) - contentArea.Y)
-                            window.ScrollOffset = math.clamp(window.ScrollOffset - wheelDelta * scrollSpeed, 0, maxScroll)
-                            window:RelayoutTab(window.CurrentTab)
-                            lastScrollTime = currentTime
-                        end
-                    end
+                -- Handle scrolling
+                local wheelDelta = getMouseWheelDelta() or 0
+                if wheelDelta ~= 0 then
+                    local contentAreaHeight = window.Size.Y - 90
+                    local maxScroll = math.max(0, (window.TotalContentHeight or 0) - contentAreaHeight)
+                    window.ScrollOffset = math.clamp(window.ScrollOffset - wheelDelta * scrollSpeed, 0, maxScroll)
+                    window:RelayoutTab(window.CurrentTab)
                 end
                 
                 -- Handle window dragging
