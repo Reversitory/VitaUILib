@@ -1,19 +1,8 @@
 --[[
-Potassium UI Library - Fixed Version for Potassium Exploit
-High Quality UI Framework optimized for Potassium Drawing API
-Created for modern Roblox GUI development with extensive features
-
-Features:
-- Modern, responsive UI components
-- Potassium Drawing API compatibility
-- Theme system with customization
-- Advanced input handling
-- Notification system
-- Performance optimized
-- Comprehensive API documentation
-
-Author: Lug
-Version: 1.0.0 Beta
+Potassium UI Library - Simple Version
+Modern gray UI with white text
+No theme system to avoid Color3 assignment issues
+Compatible with Potassium exploit
 ]]
 
 -- Services
@@ -21,58 +10,35 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
-local CoreGui = game:GetService("CoreGui")
 
 -- Potassium Drawing Library
 local Drawing = Drawing
--- Use Roblox's UserInputService for compatibility
 local Input = UserInputService
 
 -- Library Configuration
 local Library = {
-    Version = "1.0.0 Beta",
+    Version = "1.0.0 Simple",
     Windows = {},
     Tabs = {},
-    Themes = {},
     Notifications = {},
     Connections = {},
     Config = {
-        DefaultTheme = "Dark",
-        AnimationSpeed = 0.3,
         NotificationDuration = 3,
         TextSize = 14
     }
 }
 
--- Theme System
-Library.Themes.Dark = {
-    Background = Color3.fromRGB(25, 25, 35),
-    Secondary = Color3.fromRGB(35, 35, 45),
-    Accent = Color3.fromRGB(100, 200, 255),
+-- Modern Gray UI Colors
+local Colors = {
+    Background = Color3.fromRGB(45, 45, 55),
+    Secondary = Color3.fromRGB(60, 60, 70),
+    Accent = Color3.fromRGB(100, 150, 200),
     Text = Color3.fromRGB(255, 255, 255),
     TextSecondary = Color3.fromRGB(200, 200, 200),
-    Border = Color3.fromRGB(60, 60, 70),
-    Success = Color3.fromRGB(100, 255, 100),
-    Warning = Color3.fromRGB(255, 200, 100),
-    Error = Color3.fromRGB(255, 100, 100),
-    Shadow = Color3.fromRGB(0, 0, 0)
+    Success = Color3.fromRGB(100, 200, 100),
+    Warning = Color3.fromRGB(255, 180, 100),
+    Error = Color3.fromRGB(255, 100, 100)
 }
-
-Library.Themes.Light = {
-    Background = Color3.fromRGB(240, 240, 245),
-    Secondary = Color3.fromRGB(220, 220, 225),
-    Accent = Color3.fromRGB(0, 120, 255),
-    Text = Color3.fromRGB(40, 40, 40),
-    TextSecondary = Color3.fromRGB(100, 100, 100),
-    Border = Color3.fromRGB(180, 180, 185),
-    Success = Color3.fromRGB(50, 200, 50),
-    Warning = Color3.fromRGB(255, 180, 50),
-    Error = Color3.fromRGB(255, 100, 100),
-    Shadow = Color3.fromRGB(200, 200, 200)
-}
-
--- Current theme
-Library.CurrentTheme = Library.Themes.Dark
 
 -- Utility Functions
 local function Lerp(a, b, alpha)
@@ -107,14 +73,12 @@ function Window.new(config)
     self.Visible = self.Config.Visible ~= false
     self.Draggable = self.Config.Draggable ~= false
     self.Closable = self.Config.Closable ~= false
-    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     
     -- Create main frame
     self.Frame = Drawing.new("Square")
     self.Frame.Position = self.Position
     self.Frame.Size = self.Size
-    local themeColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Frame.Color = themeColor
+    self.Frame.Color = Colors.Background
     self.Frame.Thickness = 1
     self.Frame.Transparency = 0
     self.Frame.Visible = self.Visible
@@ -123,8 +87,7 @@ function Window.new(config)
     self.TitleBar = Drawing.new("Square")
     self.TitleBar.Size = Vector2.new(self.Size.X, 30)
     self.TitleBar.Position = Vector2.new(self.Position.X, self.Position.Y)
-    local secondaryColor = (self.Theme and self.Theme.Secondary) or Library.Themes.Dark.Secondary
-    self.TitleBar.Color = secondaryColor
+    self.TitleBar.Color = Colors.Secondary
     self.TitleBar.Thickness = 1
     self.TitleBar.Transparency = 0
     self.TitleBar.Visible = self.Visible
@@ -133,8 +96,7 @@ function Window.new(config)
     self.TitleText = Drawing.new("Text")
     self.TitleText.Position = Vector2.new(self.Position.X + 10, self.Position.Y + 8)
     self.TitleText.Text = self.Title
-    local textColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.TitleText.Color = textColor
+    self.TitleText.Color = Colors.Text
     self.TitleText.Size = Library.Config.TextSize
     self.TitleText.Visible = self.Visible
     
@@ -143,8 +105,7 @@ function Window.new(config)
         self.CloseButton = Drawing.new("Square")
         self.CloseButton.Size = Vector2.new(20, 20)
         self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 5)
-        local errorColor = (self.Theme and self.Theme.Error) or Library.Themes.Dark.Error
-        self.CloseButton.Color = errorColor
+        self.CloseButton.Color = Colors.Error
         self.CloseButton.Thickness = 1
         self.CloseButton.Transparency = 0
         self.CloseButton.Visible = self.Visible
@@ -152,8 +113,7 @@ function Window.new(config)
         self.CloseText = Drawing.new("Text")
         self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 20, self.Position.Y + 5)
         self.CloseText.Text = "×"
-        local closeTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-        self.CloseText.Color = closeTextColor
+        self.CloseText.Color = Colors.Text
         self.CloseText.Size = Library.Config.TextSize + 4
         self.CloseText.Visible = self.Visible
     end
@@ -162,8 +122,7 @@ function Window.new(config)
     self.Content = Drawing.new("Square")
     self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 30)
     self.Content.Size = Vector2.new(self.Size.X, self.Size.Y - 30)
-    local contentColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Content.Color = contentColor
+    self.Content.Color = Colors.Background
     self.Content.Thickness = 1
     self.Content.Transparency = 0
     self.Content.Visible = self.Visible
@@ -290,14 +249,12 @@ function Tab.new(config)
     self.Config = config or {}
     self.Name = self.Config.Name or "Tab"
     self.Window = self.Config.Window
-    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     
     -- Create tab button
     self.Button = Drawing.new("Square")
     self.Button.Size = Vector2.new(80, 25)
     self.Button.Position = Vector2.new(0, 0)
-    local buttonColor = (self.Theme and self.Theme.Secondary) or Library.Themes.Dark.Secondary
-    self.Button.Color = buttonColor
+    self.Button.Color = Colors.Secondary
     self.Button.Thickness = 1
     self.Button.Transparency = 0
     self.Button.Visible = true
@@ -305,8 +262,7 @@ function Tab.new(config)
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(40, 12)
     self.Text.Text = self.Name
-    local textTabColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.Text.Color = textTabColor
+    self.Text.Color = Colors.Text
     self.Text.Size = Library.Config.TextSize - 2
     self.Text.Visible = true
     
@@ -320,11 +276,11 @@ end
 function Tab:SetActive(active)
     self.Active = active
     if active then
-        self.Button.Color = self.Theme.Accent
-        self.Text.Color = Color3.fromRGB(255, 255, 255)
+        self.Button.Color = Colors.Accent
+        self.Text.Color = Colors.Text
     else
-        self.Button.Color = self.Theme.Secondary
-        self.Text.Color = self.Theme.Text
+        self.Button.Color = Colors.Secondary
+        self.Text.Color = Colors.Text
     end
 end
 
@@ -358,7 +314,6 @@ function Element.new(config)
     self.Name = self.Config.Name or "Element"
     self.Type = self.Config.Type or "Button"
     self.Tab = self.Config.Tab
-    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     self.Position = self.Config.Position or Vector2.new(10, 10)
     self.Size = self.Config.Size or Vector2.new(100, 25)
     self.Callback = self.Config.Callback or function() end
@@ -385,8 +340,7 @@ function Element:CreateButton()
     self.Button = Drawing.new("Square")
     self.Button.Position = self.Position
     self.Button.Size = self.Size
-    local buttonSecColor = (self.Theme and self.Theme.Secondary) or Library.Themes.Dark.Secondary
-    self.Button.Color = buttonSecColor
+    self.Button.Color = Colors.Secondary
     self.Button.Thickness = 1
     self.Button.Transparency = 0
     self.Button.Visible = true
@@ -394,8 +348,7 @@ function Element:CreateButton()
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + self.Size.X/2, self.Position.Y + self.Size.Y/2)
     self.Text.Text = self.Name
-    local buttonTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.Text.Color = buttonTextColor
+    self.Text.Color = Colors.Text
     self.Text.Size = Library.Config.TextSize
     self.Text.Visible = true
     
@@ -408,9 +361,9 @@ function Element:CreateButton()
         if hovering ~= isHovering then
             isHovering = hovering
             if hovering then
-                self.Button.Color = Lerp(self.Theme.Secondary, self.Theme.Accent, 0.3)
+                self.Button.Color = Lerp(Colors.Secondary, Colors.Accent, 0.3)
             else
-                self.Button.Color = self.Theme.Secondary
+                self.Button.Color = Colors.Secondary
             end
         end
     end)
@@ -421,9 +374,9 @@ function Element:CreateButton()
     local clickConnection
     clickConnection = Input.MouseButton1Down:Connect(function()
         if IsMouseOver(self.Button) then
-            self.Button.Color = self.Theme.Accent
+            self.Button.Color = Colors.Accent
             task.wait(0.1)
-            self.Button.Color = self.Theme.Secondary
+            self.Button.Color = Colors.Secondary
             self.Callback()
         end
     end)
@@ -435,8 +388,7 @@ function Element:CreateTextBox()
     self.Box = Drawing.new("Square")
     self.Box.Position = self.Position
     self.Box.Size = self.Size
-    local boxBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Box.Color = boxBgColor
+    self.Box.Color = Colors.Background
     self.Box.Thickness = 1
     self.Box.Transparency = 0
     self.Box.Visible = true
@@ -445,8 +397,7 @@ function Element:CreateTextBox()
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + 5, self.Position.Y + self.Size.Y/2 - 7)
     self.Text.Text = self.Name .. ": [Click to edit]"
-    local boxTextColor = (self.Theme and self.Theme.TextSecondary) or Library.Themes.Dark.TextSecondary
-    self.Text.Color = boxTextColor
+    self.Text.Color = Colors.TextSecondary
     self.Text.Size = Library.Config.TextSize - 2
     self.Text.Visible = true
     
@@ -467,8 +418,7 @@ function Element:CreateToggle()
     self.Toggle = Drawing.new("Square")
     self.Toggle.Position = self.Position
     self.Toggle.Size = Vector2.new(40, 20)
-    local toggleBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Toggle.Color = toggleBgColor
+    self.Toggle.Color = Colors.Background
     self.Toggle.Thickness = 1
     self.Toggle.Transparency = 0
     self.Toggle.Visible = true
@@ -480,9 +430,7 @@ function Element:CreateToggle()
     local indicatorSize = 16
     self.Indicator.Size = Vector2.new(indicatorSize, indicatorSize)
     self.Indicator.Position = Vector2.new(self.Position.X + 5, self.Position.Y + 2)
-    local successColor = (self.Theme and self.Theme.Success) or Library.Themes.Dark.Success
-    local bgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Indicator.Color = self.State and successColor or bgColor
+    self.Indicator.Color = self.State and Colors.Success or Colors.Background
     self.Indicator.Thickness = 1
     self.Indicator.Transparency = 0
     self.Indicator.Visible = true
@@ -491,8 +439,7 @@ function Element:CreateToggle()
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + 25, self.Position.Y + self.Size.Y/2 - 7)
     self.Text.Text = self.Name
-    local toggleTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.Text.Color = toggleTextColor
+    self.Text.Color = Colors.Text
     self.Text.Size = Library.Config.TextSize - 2
     self.Text.Visible = true
     
@@ -501,7 +448,7 @@ function Element:CreateToggle()
     clickConnection = Input.MouseButton1Down:Connect(function()
         if IsMouseOver(self.Toggle) then
             self.State = not self.State
-            self.Indicator.Color = self.State and successColor or bgColor
+            self.Indicator.Color = self.State and Colors.Success or Colors.Background
             
             if self.Callback then
                 self.Callback(self.State)
@@ -516,8 +463,7 @@ function Element:CreateSlider()
     self.Track = Drawing.new("Square")
     self.Track.Position = self.Position
     self.Track.Size = Vector2.new(self.Size.X, 4)
-    local trackBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Track.Color = trackBgColor
+    self.Track.Color = Colors.Background
     self.Track.Thickness = 1
     self.Track.Transparency = 0
     self.Track.Visible = true
@@ -525,8 +471,7 @@ function Element:CreateSlider()
     self.Handle = Drawing.new("Square")
     local handleSize = Vector2.new(16, 16)
     self.Handle.Size = handleSize
-    local handleAccentColor = (self.Theme and self.Theme.Accent) or Library.Themes.Dark.Accent
-    self.Handle.Color = handleAccentColor
+    self.Handle.Color = Colors.Accent
     self.Handle.Thickness = 1
     self.Handle.Transparency = 0
     self.Handle.Visible = true
@@ -542,8 +487,7 @@ function Element:CreateSlider()
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + self.Size.X + 10, self.Position.Y + self.Size.Y/2 - 7)
     self.Text.Text = self.Name .. ": " .. FormatNumber(self.Value)
-    local sliderTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.Text.Color = sliderTextColor
+    self.Text.Color = Colors.Text
     self.Text.Size = Library.Config.TextSize - 2
     self.Text.Visible = true
     
@@ -595,8 +539,7 @@ function Element:CreateLabel()
     self.Text = Drawing.new("Text")
     self.Text.Position = self.Position
     self.Text.Text = self.Name
-    local labelTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.Text.Color = labelTextColor
+    self.Text.Color = Colors.Text
     self.Text.Size = Library.Config.TextSize
     self.Text.Visible = true
 end
@@ -642,7 +585,6 @@ function Notification.new(title, message, type)
     self.Title = title or "Notification"
     self.Message = message or ""
     self.Type = type or "Info"
-    self.Theme = Library.CurrentTheme or Library.Themes.Dark
     self.Created = tick()
     self.Duration = Library.Config.NotificationDuration
     
@@ -650,8 +592,7 @@ function Notification.new(title, message, type)
     self.Background = Drawing.new("Square")
     self.Background.Size = Vector2.new(300, 80)
     self.Background.Position = Vector2.new(10, 10)
-    local notifBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
-    self.Background.Color = notifBgColor
+    self.Background.Color = Colors.Background
     self.Background.Thickness = 1
     self.Background.Transparency = 0
     self.Background.Visible = true
@@ -660,8 +601,7 @@ function Notification.new(title, message, type)
     self.TitleText = Drawing.new("Text")
     self.TitleText.Position = Vector2.new(20, 20)
     self.TitleText.Text = self.Title
-    local titleTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
-    self.TitleText.Color = titleTextColor
+    self.TitleText.Color = Colors.Text
     self.TitleText.Size = Library.Config.TextSize + 2
     self.TitleText.Visible = true
     
@@ -669,24 +609,19 @@ function Notification.new(title, message, type)
     self.MessageText = Drawing.new("Text")
     self.MessageText.Position = Vector2.new(20, 45)
     self.MessageText.Text = self.Message
-    local messageTextColor = (self.Theme and self.Theme.TextSecondary) or Library.Themes.Dark.TextSecondary
-    self.MessageText.Color = messageTextColor
+    self.MessageText.Color = Colors.TextSecondary
     self.MessageText.Size = Library.Config.TextSize
     self.MessageText.Visible = true
     
     -- Color based on type
     if self.Type == "Success" then
-        local successColor = (self.Theme and self.Theme.Success) or Library.Themes.Dark.Success
-        self.Background.Color = successColor
+        self.Background.Color = Colors.Success
     elseif self.Type == "Warning" then
-        local warningColor = (self.Theme and self.Theme.Warning) or Library.Themes.Dark.Warning
-        self.Background.Color = warningColor
+        self.Background.Color = Colors.Warning
     elseif self.Type == "Error" then
-        local errorColor = (self.Theme and self.Theme.Error) or Library.Themes.Dark.Error
-        self.Background.Color = errorColor
+        self.Background.Color = Colors.Error
     else
-        local accentColor = (self.Theme and self.Theme.Accent) or Library.Themes.Dark.Accent
-        self.Background.Color = accentColor
+        self.Background.Color = Colors.Accent
     end
     
     -- Auto-remove after duration
@@ -727,7 +662,6 @@ function Library.new(config)
     
     self.Config = config or {}
     self.Name = self.Config.Name or "UI Library"
-    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     
     -- Create main window
     self.MainWindow = Window.new({
@@ -735,8 +669,7 @@ function Library.new(config)
         Size = self.Config.Size or Vector2.new(500, 400),
         Position = self.Config.Position or Vector2.new(100, 100),
         Draggable = true,
-        Closable = false,
-        Theme = self.Theme
+        Closable = false
     })
     
     return self
@@ -745,8 +678,7 @@ end
 function Library:CreateTab(config)
     local tab = Tab.new({
         Name = config.Name or "Tab",
-        Window = self.MainWindow,
-        Theme = self.Theme
+        Window = self.MainWindow
     })
     
     table.insert(self.MainWindow.Content, tab)
@@ -768,7 +700,6 @@ function Library:CreateElement(config)
         Name = config.Name or "Element",
         Type = config.Type or "Button",
         Tab = activeTab,
-        Theme = self.Theme,
         Position = config.Position,
         Size = config.Size,
         Callback = config.Callback,
@@ -787,42 +718,6 @@ function Library:CreateElement(config)
     end
     
     return element
-end
-
-function Library:SetTheme(themeName)
-    if Library.Themes[themeName] then
-        Library.CurrentTheme = Library.Themes[themeName]
-        
-        -- Update all windows and elements
-        for _, window in pairs(Library.Windows) do
-            window.Theme = Library.CurrentTheme
-            window:UpdatePosition()
-            
-            for _, tab in pairs(window.Content) do
-                tab.Theme = Library.CurrentTheme
-                
-                for _, element in pairs(tab.Content) do
-                    element.Theme = Library.CurrentTheme
-                    -- Recreate element with new theme
-                    if element.Destroy then
-                        element:Destroy()
-                    end
-                    Element.new({
-                        Name = element.Name,
-                        Type = element.Type,
-                        Tab = tab,
-                        Theme = Library.CurrentTheme,
-                        Position = element.Position,
-                        Size = element.Size,
-                        Callback = element.Callback,
-                        Default = element.Default,
-                        Min = element.Min,
-                        Max = element.Max
-                    })
-                end
-            end
-        end
-    end
 end
 
 function Library:Notify(title, message, type)
