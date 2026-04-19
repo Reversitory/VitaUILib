@@ -121,7 +121,8 @@ function Window.new(config)
     self.Frame = Drawing.new("Square")
     self.Frame.Position = self.Position
     self.Frame.Size = self.Size
-    self.Frame.Color = self.Theme.Background
+    local themeColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Frame.Color = themeColor
     self.Frame.Thickness = 1
     self.Frame.Transparency = 0
     self.Frame.Visible = self.Visible
@@ -130,7 +131,8 @@ function Window.new(config)
     self.TitleBar = Drawing.new("Square")
     self.TitleBar.Size = Vector2.new(self.Size.X, 30)
     self.TitleBar.Position = Vector2.new(self.Position.X, self.Position.Y)
-    self.TitleBar.Color = self.Theme.Secondary
+    local secondaryColor = (self.Theme and self.Theme.Secondary) or Library.Themes.Dark.Secondary
+    self.TitleBar.Color = secondaryColor
     self.TitleBar.Thickness = 1
     self.TitleBar.Transparency = 0
     self.TitleBar.Visible = self.Visible
@@ -139,7 +141,8 @@ function Window.new(config)
     self.TitleText = Drawing.new("Text")
     self.TitleText.Position = Vector2.new(self.Position.X + 10, self.Position.Y + 8)
     self.TitleText.Text = self.Title
-    self.TitleText.Color = self.Theme.Text
+    local textColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.TitleText.Color = textColor
     self.TitleText.Size = Library.Config.TextSize
     self.TitleText.Visible = self.Visible
     
@@ -148,7 +151,8 @@ function Window.new(config)
         self.CloseButton = Drawing.new("Square")
         self.CloseButton.Size = Vector2.new(20, 20)
         self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 5)
-        self.CloseButton.Color = self.Theme.Error
+        local errorColor = (self.Theme and self.Theme.Error) or Library.Themes.Dark.Error
+        self.CloseButton.Color = errorColor
         self.CloseButton.Thickness = 1
         self.CloseButton.Transparency = 0
         self.CloseButton.Visible = self.Visible
@@ -156,7 +160,8 @@ function Window.new(config)
         self.CloseText = Drawing.new("Text")
         self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 20, self.Position.Y + 5)
         self.CloseText.Text = "×"
-        self.CloseText.Color = self.Theme.Text
+        local closeTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+        self.CloseText.Color = closeTextColor
         self.CloseText.Size = Library.Config.TextSize + 4
         self.CloseText.Visible = self.Visible
     end
@@ -165,7 +170,8 @@ function Window.new(config)
     self.Content = Drawing.new("Square")
     self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 30)
     self.Content.Size = Vector2.new(self.Size.X, self.Size.Y - 30)
-    self.Content.Color = self.Theme.Background
+    local contentColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Content.Color = contentColor
     self.Content.Thickness = 1
     self.Content.Transparency = 0
     self.Content.Visible = self.Visible
