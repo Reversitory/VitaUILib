@@ -7,13 +7,12 @@ Compatible with Potassium exploit
 
 -- Services
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 
--- Potassium Drawing Library
+-- Potassium Libraries
 local Drawing = Drawing
-local Input = UserInputService
+local Input = Input
 
 -- Library Configuration
 local Library = {
@@ -46,7 +45,7 @@ local function Lerp(a, b, alpha)
 end
 
 local function IsMouseOver(object)
-    local mouse = UserInputService:GetMouseLocation()
+    local mouse = Input.GetMouseLocation()
     local pos = object.Position
     local size = object.Size
     return mouse.X >= pos.X and mouse.X <= pos.X + size.X and 
@@ -136,7 +135,7 @@ function Window.new(config)
         connection = Input.MouseButton1Down:Connect(function()
             if IsMouseOver(self.Frame) then
                 isDragging = true
-                local mousePos = UserInputService:GetMouseLocation()
+                local mousePos = Input.GetMouseLocation()
                 dragOffset = self.Position - mousePos
             end
         end)
@@ -146,7 +145,7 @@ function Window.new(config)
         local moveConnection
         moveConnection = Input.MouseMoved:Connect(function()
             if isDragging then
-                local mousePos = UserInputService:GetMouseLocation()
+                local mousePos = Input.GetMouseLocation()
                 self.Position = mousePos + dragOffset
                 self:UpdatePosition()
             end
@@ -506,7 +505,7 @@ function Element:CreateSlider()
     local moveConnection
     moveConnection = Input.MouseMoved:Connect(function()
         if isDragging then
-            local mousePos = UserInputService:GetMouseLocation()
+            local mousePos = Input.GetMouseLocation()
             local relativeX = mousePos.X - self.Position.X
             local percent = math.clamp(relativeX / self.Size.X, 0, 1)
             self.Value = self.Min + (self.Max - self.Min) * percent
