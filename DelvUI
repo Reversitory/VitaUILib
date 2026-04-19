@@ -13,15 +13,14 @@ Features:
 - Potassium exploit compatibility
 - Comprehensive API documentation
 
-Author: Lug
-Version: 1.0.0 Beta
+Author: Advanced UI Framework
+Version: 1.0.0
 ]]
 
 -- Services
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
@@ -32,7 +31,7 @@ local Input = Input
 
 -- Library Configuration
 local Library = {
-    Version = "1.0.0 Beta",
+    Version = "1.0.0",
     Windows = {},
     Tabs = {},
     Themes = {},
@@ -116,27 +115,25 @@ function Window.new(config)
     self.Visible = self.Config.Visible ~= false
     self.Draggable = self.Config.Draggable ~= false
     self.Closable = self.Config.Closable ~= false
-    self.Theme = self.Config.Theme or Library.CurrentTheme
+    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     
     -- Create main frame
     self.Frame = Drawing.new("Square")
     self.Frame.Position = self.Position
     self.Frame.Size = self.Size
     self.Frame.Color = self.Theme.Background
-    self.Frame.BorderSize = 1
-    self.Frame.BorderColor = self.Theme.Border
+    self.Frame.Thickness = 1
+    self.Frame.Transparency = 0
     self.Frame.Visible = self.Visible
-    self.Frame.ZIndex = 100
     
     -- Create title bar
     self.TitleBar = Drawing.new("Square")
     self.TitleBar.Size = Vector2.new(self.Size.X, 30)
     self.TitleBar.Position = Vector2.new(self.Position.X, self.Position.Y)
     self.TitleBar.Color = self.Theme.Secondary
-    self.TitleBar.BorderSize = 1
-    self.TitleBar.BorderColor = self.Theme.Border
+    self.TitleBar.Thickness = 1
+    self.TitleBar.Transparency = 0
     self.TitleBar.Visible = self.Visible
-    self.TitleBar.ZIndex = 101
     
     -- Create title text
     self.TitleText = Drawing.new("Text")
@@ -144,9 +141,7 @@ function Window.new(config)
     self.TitleText.Text = self.Title
     self.TitleText.Color = self.Theme.Text
     self.TitleText.Size = Library.Config.TextSize
-    self.TitleText.Font = Library.Config.Font
     self.TitleText.Visible = self.Visible
-    self.TitleText.ZIndex = 102
     
     -- Create close button
     if self.Closable then
@@ -154,20 +149,16 @@ function Window.new(config)
         self.CloseButton.Size = Vector2.new(20, 20)
         self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 5)
         self.CloseButton.Color = self.Theme.Error
-        self.CloseButton.BorderSize = 1
-        self.CloseButton.BorderColor = self.Theme.Border
+        self.CloseButton.Thickness = 1
+        self.CloseButton.Transparency = 0
         self.CloseButton.Visible = self.Visible
-        self.CloseButton.ZIndex = 103
         
         self.CloseText = Drawing.new("Text")
         self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 20, self.Position.Y + 5)
         self.CloseText.Text = "×"
         self.CloseText.Color = self.Theme.Text
         self.CloseText.Size = Library.Config.TextSize + 4
-        self.CloseText.Font = Library.Config.Font
         self.CloseText.Visible = self.Visible
-        self.CloseText.ZIndex = 104
-        self.CloseText.Center = true
     end
     
     -- Create content area
@@ -175,10 +166,9 @@ function Window.new(config)
     self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 30)
     self.Content.Size = Vector2.new(self.Size.X, self.Size.Y - 30)
     self.Content.Color = self.Theme.Background
-    self.Content.BorderSize = 1
-    self.Content.BorderColor = self.Theme.Border
+    self.Content.Thickness = 1
+    self.Content.Transparency = 0
     self.Content.Visible = self.Visible
-    self.Content.ZIndex = 99
     
     -- Dragging functionality
     if self.Draggable then
@@ -302,7 +292,7 @@ function Tab.new(config)
     self.Config = config or {}
     self.Name = self.Config.Name or "Tab"
     self.Window = self.Config.Window
-    self.Theme = self.Config.Theme or Library.CurrentTheme
+    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     
     -- Create tab button
     self.Button = Drawing.new("Square")
@@ -372,7 +362,7 @@ function Element.new(config)
     self.Name = self.Config.Name or "Element"
     self.Type = self.Config.Type or "Button"
     self.Tab = self.Config.Tab
-    self.Theme = self.Config.Theme or Library.CurrentTheme
+    self.Theme = self.Config.Theme or Library.CurrentTheme or Library.Themes.Dark
     self.Position = self.Config.Position or Vector2.new(10, 10)
     self.Size = self.Config.Size or Vector2.new(100, 25)
     self.Callback = self.Config.Callback or function() end
@@ -660,7 +650,7 @@ function Notification.new(title, message, type)
     self.Title = title or "Notification"
     self.Message = message or ""
     self.Type = type or "Info"
-    self.Theme = Library.CurrentTheme
+    self.Theme = Library.CurrentTheme or Library.Themes.Dark
     self.Created = tick()
     self.Duration = Library.Config.NotificationDuration
     
