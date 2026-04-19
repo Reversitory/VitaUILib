@@ -305,21 +305,19 @@ function Tab.new(config)
     self.Button = Drawing.new("Square")
     self.Button.Size = Vector2.new(80, 25)
     self.Button.Position = Vector2.new(0, 0)
-    self.Button.Color = self.Theme.Secondary
-    self.Button.BorderSize = 1
-    self.Button.BorderColor = self.Theme.Accent
+    local buttonColor = (self.Theme and self.Theme.Secondary) or Library.Themes.Dark.Secondary
+    self.Button.Color = buttonColor
+    self.Button.Thickness = 1
+    self.Button.Transparency = 0
     self.Button.Visible = true
-    self.Button.ZIndex = 110
     
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(40, 12)
     self.Text.Text = self.Name
-    self.Text.Color = self.Theme.Text
+    local textTabColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.Text.Color = textTabColor
     self.Text.Size = Library.Config.TextSize - 2
-    self.Text.Font = Library.Config.Font
     self.Text.Visible = true
-    self.Text.ZIndex = 111
-    self.Text.Center = true
     
     -- Tab content area
     self.Content = {}
@@ -396,21 +394,19 @@ function Element:CreateButton()
     self.Button = Drawing.new("Square")
     self.Button.Position = self.Position
     self.Button.Size = self.Size
-    self.Button.Color = self.Theme.Secondary
-    self.Button.BorderSize = 1
-    self.Button.BorderColor = self.Theme.Accent
+    local buttonSecColor = (self.Theme and self.Theme.Secondary) or Library.Themes.Dark.Secondary
+    self.Button.Color = buttonSecColor
+    self.Button.Thickness = 1
+    self.Button.Transparency = 0
     self.Button.Visible = true
-    self.Button.ZIndex = 120
     
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + self.Size.X/2, self.Position.Y + self.Size.Y/2)
     self.Text.Text = self.Name
-    self.Text.Color = self.Theme.Text
+    local buttonTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.Text.Color = buttonTextColor
     self.Text.Size = Library.Config.TextSize
-    self.Text.Font = Library.Config.Font
     self.Text.Visible = true
-    self.Text.ZIndex = 121
-    self.Text.Center = true
     
     -- Hover effect
     local isHovering = false
@@ -447,21 +443,20 @@ function Element:CreateTextBox()
     self.Box = Drawing.new("Square")
     self.Box.Position = self.Position
     self.Box.Size = self.Size
-    self.Box.Color = self.Theme.Background
-    self.Box.BorderSize = 1
-    self.Box.BorderColor = self.Theme.Border
+    local boxBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Box.Color = boxBgColor
+    self.Box.Thickness = 1
+    self.Box.Transparency = 0
     self.Box.Visible = true
-    self.Box.ZIndex = 120
     
     -- Input field (simulated - actual input would need Roblox GUI)
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + 5, self.Position.Y + self.Size.Y/2 - 7)
     self.Text.Text = self.Name .. ": [Click to edit]"
-    self.Text.Color = self.Theme.TextSecondary
+    local boxTextColor = (self.Theme and self.Theme.TextSecondary) or Library.Themes.Dark.TextSecondary
+    self.Text.Color = boxTextColor
     self.Text.Size = Library.Config.TextSize - 2
-    self.Text.Font = Library.Config.Font
     self.Text.Visible = true
-    self.Text.ZIndex = 121
     
     -- Click handler for editing
     local clickConnection
@@ -480,11 +475,11 @@ function Element:CreateToggle()
     self.Toggle = Drawing.new("Square")
     self.Toggle.Position = self.Position
     self.Toggle.Size = Vector2.new(40, 20)
-    self.Toggle.Color = self.Theme.Background
-    self.Toggle.BorderSize = 1
-    self.Toggle.BorderColor = self.Theme.Border
+    local toggleBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Toggle.Color = toggleBgColor
+    self.Toggle.Thickness = 1
+    self.Toggle.Transparency = 0
     self.Toggle.Visible = true
-    self.Toggle.ZIndex = 120
     
     self.State = self.Config.Default ~= nil and self.Config.Default or false
     
@@ -493,28 +488,30 @@ function Element:CreateToggle()
     local indicatorSize = 16
     self.Indicator.Size = Vector2.new(indicatorSize, indicatorSize)
     self.Indicator.Position = Vector2.new(self.Position.X + 5, self.Position.Y + 2)
-    self.Indicator.Color = self.State and self.Theme.Success or self.Theme.Background
-    self.Indicator.BorderSize = 1
-    self.Indicator.BorderColor = self.Theme.Border
+    local successColor = (self.Theme and self.Theme.Success) or Library.Themes.Dark.Success
+    local bgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Indicator.Color = self.State and successColor or bgColor
+    self.Indicator.Thickness = 1
+    self.Indicator.Transparency = 0
     self.Indicator.Visible = true
-    self.Indicator.ZIndex = 121
     
     -- Label
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + 25, self.Position.Y + self.Size.Y/2 - 7)
     self.Text.Text = self.Name
-    self.Text.Color = self.Theme.Text
+    local toggleTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.Text.Color = toggleTextColor
     self.Text.Size = Library.Config.TextSize - 2
-    self.Text.Font = Library.Config.Font
     self.Text.Visible = true
-    self.Text.ZIndex = 121
     
     -- Click handler
     local clickConnection
     clickConnection = Input.MouseButton1Down:Connect(function()
         if IsMouseOver(self.Toggle) then
             self.State = not self.State
-            self.Indicator.Color = self.State and self.Theme.Background or self.Theme.Success
+            local successColor = (self.Theme and self.Theme.Success) or Library.Themes.Dark.Success
+            local bgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+            self.Indicator.Color = self.State and bgColor or successColor
             
             if self.Callback then
                 self.Callback(self.State)
@@ -529,20 +526,20 @@ function Element:CreateSlider()
     self.Track = Drawing.new("Square")
     self.Track.Position = self.Position
     self.Track.Size = Vector2.new(self.Size.X, 4)
-    self.Track.Color = self.Theme.Background
-    self.Track.BorderSize = 1
-    self.Track.BorderColor = self.Theme.Border
+    local trackBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Track.Color = trackBgColor
+    self.Track.Thickness = 1
+    self.Track.Transparency = 0
     self.Track.Visible = true
-    self.Track.ZIndex = 120
     
     self.Handle = Drawing.new("Square")
     local handleSize = Vector2.new(16, 16)
     self.Handle.Size = handleSize
-    self.Handle.Color = self.Theme.Accent
-    self.Handle.BorderSize = 1
-    self.Handle.BorderColor = self.Theme.Border
+    local handleAccentColor = (self.Theme and self.Theme.Accent) or Library.Themes.Dark.Accent
+    self.Handle.Color = handleAccentColor
+    self.Handle.Thickness = 1
+    self.Handle.Transparency = 0
     self.Handle.Visible = true
-    self.Handle.ZIndex = 121
     
     self.Value = self.Config.Default or self.Config.Min or 0
     self.Min = self.Config.Min or 0
@@ -555,11 +552,10 @@ function Element:CreateSlider()
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(self.Position.X + self.Size.X + 10, self.Position.Y + self.Size.Y/2 - 7)
     self.Text.Text = self.Name .. ": " .. FormatNumber(self.Value)
-    self.Text.Color = self.Theme.Text
+    local sliderTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.Text.Color = sliderTextColor
     self.Text.Size = Library.Config.TextSize - 2
-    self.Text.Font = Library.Config.Font
     self.Text.Visible = true
-    self.Text.ZIndex = 121
     
     -- Dragging functionality
     local isDragging = false
@@ -609,11 +605,10 @@ function Element:CreateLabel()
     self.Text = Drawing.new("Text")
     self.Text.Position = self.Position
     self.Text.Text = self.Name
-    self.Text.Color = self.Theme.Text
+    local labelTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.Text.Color = labelTextColor
     self.Text.Size = Library.Config.TextSize
-    self.Text.Font = Library.Config.Font
     self.Text.Visible = true
-    self.Text.ZIndex = 120
 end
 
 function Element:Destroy()
@@ -665,41 +660,43 @@ function Notification.new(title, message, type)
     self.Background = Drawing.new("Square")
     self.Background.Size = Vector2.new(300, 80)
     self.Background.Position = Vector2.new(10, 10)
-    self.Background.Color = self.Theme.Background
-    self.Background.BorderSize = 1
-    self.Background.BorderColor = self.Theme.Border
+    local notifBgColor = (self.Theme and self.Theme.Background) or Library.Themes.Dark.Background
+    self.Background.Color = notifBgColor
+    self.Background.Thickness = 1
+    self.Background.Transparency = 0
     self.Background.Visible = true
-    self.Background.ZIndex = 200
     
     -- Create title
     self.TitleText = Drawing.new("Text")
     self.TitleText.Position = Vector2.new(20, 20)
     self.TitleText.Text = self.Title
-    self.TitleText.Color = self.Theme.Text
+    local titleTextColor = (self.Theme and self.Theme.Text) or Library.Themes.Dark.Text
+    self.TitleText.Color = titleTextColor
     self.TitleText.Size = Library.Config.TextSize + 2
-    self.TitleText.Font = Enum.Font.GothamBold
     self.TitleText.Visible = true
-    self.TitleText.ZIndex = 201
     
     -- Create message
     self.MessageText = Drawing.new("Text")
     self.MessageText.Position = Vector2.new(20, 45)
     self.MessageText.Text = self.Message
-    self.MessageText.Color = self.Theme.TextSecondary
+    local messageTextColor = (self.Theme and self.Theme.TextSecondary) or Library.Themes.Dark.TextSecondary
+    self.MessageText.Color = messageTextColor
     self.MessageText.Size = Library.Config.TextSize
-    self.MessageText.Font = Library.Config.Font
     self.MessageText.Visible = true
-    self.MessageText.ZIndex = 201
     
     -- Color based on type
     if self.Type == "Success" then
-        self.Background.BorderColor = self.Theme.Success
+        local successColor = (self.Theme and self.Theme.Success) or Library.Themes.Dark.Success
+        self.Background.Color = successColor
     elseif self.Type == "Warning" then
-        self.Background.BorderColor = self.Theme.Warning
+        local warningColor = (self.Theme and self.Theme.Warning) or Library.Themes.Dark.Warning
+        self.Background.Color = warningColor
     elseif self.Type == "Error" then
-        self.Background.BorderColor = self.Theme.Error
+        local errorColor = (self.Theme and self.Theme.Error) or Library.Themes.Dark.Error
+        self.Background.Color = errorColor
     else
-        self.Background.BorderColor = self.Theme.Accent
+        local accentColor = (self.Theme and self.Theme.Accent) or Library.Themes.Dark.Accent
+        self.Background.Color = accentColor
     end
     
     -- Auto-remove after duration
