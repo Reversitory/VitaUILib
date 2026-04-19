@@ -27,7 +27,8 @@ local HttpService = game:GetService("HttpService")
 
 -- Potassium Drawing Library
 local Drawing = Drawing
-local Input = Input
+-- Use Roblox's UserInputService for compatibility
+local Input = UserInputService
 
 -- Library Configuration
 local Library = {
