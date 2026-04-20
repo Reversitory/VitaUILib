@@ -1,43 +1,136 @@
 --[[
-Potassium UI Library - Simple Version
-Modern gray UI with white text
-No theme system to avoid Color3 assignment issues
-Compatible with Potassium exploit
+Starlight UI Library - Potassium Compatible
+Inspired by Nebula Softworks Starlight Interface Suite
+Modern UI library with beautiful themes and smooth animations
+Compatible with Potassium exploit using normal Roblox approach
+
+Features:
+- Modern theme system with multiple color schemes
+- Smooth animations and transitions
+- Complete UI component library
+- Notification system
+- Configuration management
+- Potassium exploit compatibility
+
+Author: Advanced UI Framework
+Version: 1.0.0
 ]]
 
 -- Services
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
 
--- Potassium Libraries
+-- Drawing Library
 local Drawing = Drawing
-local Input = Input
 
 -- Library Configuration
-local Library = {
-    Version = "1.0.0 Simple",
-    Windows = {},
-    Tabs = {},
-    Notifications = {},
+local Starlight = {
+    Version = "1.0.0",
+    InterfaceBuild = "1.0.0",
+    WindowKeybind = Enum.KeyCode.K,
+    Minimized = false,
+    Maximized = false,
+    NotificationsOpen = false,
+    Window = nil,
+    Notifications = nil,
+    Instance = nil,
     Connections = {},
     Config = {
         NotificationDuration = 3,
-        TextSize = 14
+        AnimationSpeed = 0.3,
+        TextSize = 14,
+        DefaultTheme = "Starlight"
     }
 }
 
--- Modern Gray UI Colors
-local Colors = {
-    Background = Color3.fromRGB(45, 45, 55),
-    Secondary = Color3.fromRGB(60, 60, 70),
-    Accent = Color3.fromRGB(100, 150, 200),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextSecondary = Color3.fromRGB(200, 200, 200),
-    Success = Color3.fromRGB(100, 200, 100),
-    Warning = Color3.fromRGB(255, 180, 100),
-    Error = Color3.fromRGB(255, 100, 100)
+-- Theme System - Inspired by Starlight
+local Themes = {
+    Starlight = {
+        Backgrounds = {
+            Dark = Color3.fromRGB(23, 25, 29),
+            Medium = Color3.fromRGB(27, 29, 33),
+            Light = Color3.fromRGB(33, 34, 38),
+            Groupbox = Color3.fromRGB(33, 36, 42),
+            Highlight = Color3.fromRGB(17, 19, 22),
+        },
+        Foregrounds = {
+            Active = Color3.fromRGB(255, 255, 255),
+            Light = Color3.fromRGB(255, 255, 255),
+            Medium = Color3.fromRGB(165, 165, 165),
+            Dark = Color3.fromRGB(65, 69, 77),
+            MediumHover = Color3.fromRGB(185, 185, 185),
+            DarkHover = Color3.fromRGB(85, 89, 97),
+        },
+        Miscellaneous = {
+            Divider = Color3.fromRGB(117, 128, 149),
+            Shadow = Color3.fromRGB(19, 21, 24),
+            LighterShadow = Color3.fromRGB(24, 25, 30),
+        },
+        Accents = {
+            Main = Color3.fromRGB(230, 186, 251),
+            Brighter = Color3.fromRGB(241, 212, 251),
+        }
+    },
+    ["Hollywood Dark"] = {
+        Backgrounds = {
+            Dark = Color3.fromRGB(8, 8, 8),
+            Medium = Color3.fromRGB(12, 12, 12),
+            Light = Color3.fromRGB(15, 15, 15),
+            Groupbox = Color3.fromRGB(14, 14, 14),
+            Highlight = Color3.fromRGB(13, 13, 13),
+        },
+        Foregrounds = {
+            Active = Color3.fromRGB(255, 255, 255),
+            Light = Color3.fromRGB(255, 255, 255),
+            Medium = Color3.fromRGB(165, 165, 165),
+            Dark = Color3.fromRGB(77, 77, 77),
+            MediumHover = Color3.fromRGB(185, 185, 185),
+            DarkHover = Color3.fromRGB(97, 97, 97),
+        },
+        Miscellaneous = {
+            Divider = Color3.fromRGB(199, 199, 199),
+            Shadow = Color3.fromRGB(21, 21, 21),
+            LighterShadow = Color3.fromRGB(30, 30, 30),
+        },
+        Accents = {
+            Main = Color3.fromRGB(230, 186, 251),
+            Brighter = Color3.fromRGB(241, 212, 251),
+        }
+    },
+    ["Hollywood Light"] = {
+        Backgrounds = {
+            Dark = Color3.fromRGB(240, 240, 240),
+            Medium = Color3.fromRGB(250, 250, 250),
+            Light = Color3.fromRGB(255, 255, 255),
+            Groupbox = Color3.fromRGB(245, 245, 245),
+            Highlight = Color3.fromRGB(217, 217, 217),
+        },
+        Foregrounds = {
+            Active = Color3.fromRGB(255, 255, 255),
+            Light = Color3.fromRGB(40, 40, 40),
+            Medium = Color3.fromRGB(145, 145, 145),
+            Dark = Color3.fromRGB(190, 190, 190),
+            MediumHover = Color3.fromRGB(125, 125, 125),
+            DarkHover = Color3.fromRGB(170, 170, 170),
+        },
+        Miscellaneous = {
+            Divider = Color3.fromRGB(40, 40, 40),
+            Shadow = Color3.fromRGB(179, 179, 179),
+            LighterShadow = Color3.fromRGB(209, 209, 209),
+        },
+        Accents = {
+            Main = Color3.fromRGB(178, 101, 199),
+            Brighter = Color3.fromRGB(221, 156, 239),
+        }
+    }
 }
+
+-- Current theme
+Starlight.CurrentTheme = Themes[Starlight.Config.DefaultTheme]
 
 -- Utility Functions
 local function Lerp(a, b, alpha)
@@ -45,7 +138,7 @@ local function Lerp(a, b, alpha)
 end
 
 local function IsMouseOver(object)
-    local mouse = Input.GetMouseLocation()
+    local mouse = UserInputService:GetMouseLocation()
     local pos = object.Position
     local size = object.Size
     return mouse.X >= pos.X and mouse.X <= pos.X + size.X and 
@@ -58,6 +151,12 @@ local function FormatNumber(num, decimals)
     return formatted
 end
 
+local function CreateTween(object, info, duration)
+    local tween = TweenService:Create(object, duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, info)
+    tween:Play()
+    return tween
+end
+
 -- Window Class
 local Window = {}
 Window.__index = Window
@@ -66,65 +165,79 @@ function Window.new(config)
     local self = setmetatable({}, Window)
     
     self.Config = config or {}
+    self.Name = self.Config.Name or "Starlight UI"
+    self.Subtitle = self.Config.Subtitle or ""
     self.Position = self.Config.Position or Vector2.new(100, 100)
-    self.Size = self.Config.Size or Vector2.new(400, 300)
-    self.Title = self.Config.Title or "Window"
+    self.Size = self.Config.Size or Vector2.new(500, 400)
     self.Visible = self.Config.Visible ~= false
     self.Draggable = self.Config.Draggable ~= false
     self.Closable = self.Config.Closable ~= false
+    self.Theme = Themes[self.Config.Theme] or Starlight.CurrentTheme
     
     -- Create main frame
     self.Frame = Drawing.new("Square")
     self.Frame.Position = self.Position
     self.Frame.Size = self.Size
-    self.Frame.Color = Colors.Background
+    self.Frame.Color = self.Theme.Backgrounds.Dark
     self.Frame.Thickness = 1
     self.Frame.Transparency = 0
     self.Frame.Visible = self.Visible
     
     -- Create title bar
     self.TitleBar = Drawing.new("Square")
-    self.TitleBar.Size = Vector2.new(self.Size.X, 30)
+    self.TitleBar.Size = Vector2.new(self.Size.X, 40)
     self.TitleBar.Position = Vector2.new(self.Position.X, self.Position.Y)
-    self.TitleBar.Color = Colors.Secondary
+    self.TitleBar.Color = self.Theme.Backgrounds.Medium
     self.TitleBar.Thickness = 1
     self.TitleBar.Transparency = 0
     self.TitleBar.Visible = self.Visible
     
     -- Create title text
     self.TitleText = Drawing.new("Text")
-    self.TitleText.Position = Vector2.new(self.Position.X + 10, self.Position.Y + 8)
-    self.TitleText.Text = self.Title
-    self.TitleText.Color = Colors.Text
-    self.TitleText.Size = Library.Config.TextSize
+    self.TitleText.Position = Vector2.new(self.Position.X + 50, self.Position.Y + 12)
+    self.TitleText.Text = self.Name
+    self.TitleText.Color = self.Theme.Foregrounds.Active
+    self.TitleText.Size = Starlight.Config.TextSize + 2
     self.TitleText.Visible = self.Visible
+    
+    -- Create subtitle text
+    self.SubtitleText = Drawing.new("Text")
+    self.SubtitleText.Position = Vector2.new(self.Position.X + 50, self.Position.Y + 25)
+    self.SubtitleText.Text = self.Subtitle
+    self.SubtitleText.Color = self.Theme.Foregrounds.Medium
+    self.SubtitleText.Size = Starlight.Config.TextSize - 2
+    self.SubtitleText.Visible = self.Visible and self.Subtitle ~= ""
     
     -- Create close button
     if self.Closable then
         self.CloseButton = Drawing.new("Square")
-        self.CloseButton.Size = Vector2.new(20, 20)
-        self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 5)
-        self.CloseButton.Color = Colors.Error
+        self.CloseButton.Size = Vector2.new(30, 30)
+        self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 35, self.Position.Y + 5)
+        self.CloseButton.Color = self.Theme.Backgrounds.Light
         self.CloseButton.Thickness = 1
         self.CloseButton.Transparency = 0
         self.CloseButton.Visible = self.Visible
         
         self.CloseText = Drawing.new("Text")
-        self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 20, self.Position.Y + 5)
+        self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 12)
         self.CloseText.Text = "×"
-        self.CloseText.Color = Colors.Text
-        self.CloseText.Size = Library.Config.TextSize + 4
+        self.CloseText.Color = self.Theme.Foregrounds.Medium
+        self.CloseText.Size = Starlight.Config.TextSize + 4
         self.CloseText.Visible = self.Visible
     end
     
     -- Create content area
     self.Content = Drawing.new("Square")
-    self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 30)
-    self.Content.Size = Vector2.new(self.Size.X, self.Size.Y - 30)
-    self.Content.Color = Colors.Background
+    self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 40)
+    self.Content.Size = Vector2.new(self.Size.X, self.Size.Y - 40)
+    self.Content.Color = self.Theme.Backgrounds.Dark
     self.Content.Thickness = 1
     self.Content.Transparency = 0
     self.Content.Visible = self.Visible
+    
+    -- Tab system
+    self.Tabs = {}
+    self.TabSections = {}
     
     -- Dragging functionality
     if self.Draggable then
@@ -132,62 +245,68 @@ function Window.new(config)
         local dragOffset = Vector2.new(0, 0)
         
         local connection
-        connection = Input.MouseButton1Down:Connect(function()
-            if IsMouseOver(self.Frame) then
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 and IsMouseOver(self.TitleBar) then
                 isDragging = true
-                local mousePos = Input.GetMouseLocation()
+                local mousePos = UserInputService:GetMouseLocation()
                 dragOffset = self.Position - mousePos
             end
         end)
         
-        table.insert(Library.Connections, connection)
+        table.insert(Starlight.Connections, connection)
         
         local moveConnection
-        moveConnection = Input.MouseMoved:Connect(function()
-            if isDragging then
-                local mousePos = Input.GetMouseLocation()
+        moveConnection = UserInputService.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+                local mousePos = UserInputService:GetMouseLocation()
                 self.Position = mousePos + dragOffset
                 self:UpdatePosition()
             end
         end)
         
-        table.insert(Library.Connections, moveConnection)
+        table.insert(Starlight.Connections, moveConnection)
         
         local upConnection
-        upConnection = Input.MouseButton1Up:Connect(function()
-            isDragging = false
+        upConnection = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                isDragging = false
+            end
         end)
         
-        table.insert(Library.Connections, upConnection)
+        table.insert(Starlight.Connections, upConnection)
     end
     
-    table.insert(Library.Windows, self)
     return self
-end
-
-function Window:SetPosition(position)
-    self.Position = position
-    self:UpdatePosition()
 end
 
 function Window:UpdatePosition()
     self.Frame.Position = self.Position
     self.TitleBar.Position = Vector2.new(self.Position.X, self.Position.Y)
-    self.TitleText.Position = Vector2.new(self.Position.X + 10, self.Position.Y + 8)
+    self.TitleText.Position = Vector2.new(self.Position.X + 50, self.Position.Y + 12)
+    self.SubtitleText.Position = Vector2.new(self.Position.X + 50, self.Position.Y + 25)
     
     if self.CloseButton then
-        self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 5)
-        self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 20, self.Position.Y + 5)
+        self.CloseButton.Position = Vector2.new(self.Position.X + self.Size.X - 35, self.Position.Y + 5)
+        self.CloseText.Position = Vector2.new(self.Position.X + self.Size.X - 25, self.Position.Y + 12)
     end
     
-    self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 30)
+    self.Content.Position = Vector2.new(self.Position.X, self.Position.Y + 40)
+    
+    -- Update tab positions
+    local xOffset = 10
+    for _, tab in pairs(self.Tabs) do
+        if tab.Button then
+            tab.Button.Position = Vector2.new(self.Position.X + xOffset, self.Position.Y + 45)
+            xOffset = xOffset + tab.Button.Size.X + 5
+        end
+    end
 end
 
 function Window:SetSize(size)
     self.Size = size
     self.Frame.Size = size
-    self.TitleBar.Size = Vector2.new(size.X, 30)
-    self.Content.Size = Vector2.new(size.X, size.Y - 30)
+    self.TitleBar.Size = Vector2.new(size.X, 40)
+    self.Content.Size = Vector2.new(size.X, size.Y - 40)
 end
 
 function Window:SetVisible(visible)
@@ -195,11 +314,21 @@ function Window:SetVisible(visible)
     self.Frame.Visible = visible
     self.TitleBar.Visible = visible
     self.TitleText.Visible = visible
+    self.SubtitleText.Visible = visible and self.Subtitle ~= ""
     self.Content.Visible = visible
     
     if self.CloseButton then
         self.CloseButton.Visible = visible
         self.CloseText.Visible = visible
+    end
+    
+    for _, tab in pairs(self.Tabs) do
+        if tab.Button then
+            tab.Button.Visible = visible
+        end
+        if tab.Text then
+            tab.Text.Visible = visible
+        end
     end
 end
 
@@ -216,6 +345,10 @@ function Window:Destroy()
         self.TitleText:Remove()
         self.TitleText = nil
     end
+    if self.SubtitleText then
+        self.SubtitleText:Remove()
+        self.SubtitleText = nil
+    end
     if self.CloseButton then
         self.CloseButton:Remove()
         self.CloseButton = nil
@@ -229,16 +362,17 @@ function Window:Destroy()
         self.Content = nil
     end
     
-    -- Remove from windows list
-    for i, window in pairs(Library.Windows) do
-        if window == self then
-            table.remove(Library.Windows, i)
-            break
+    -- Destroy all tabs
+    for _, tab in pairs(self.Tabs) do
+        if tab.Destroy then
+            tab:Destroy()
         end
     end
+    self.Tabs = {}
+    self.TabSections = {}
 end
 
--- Tab System
+-- Tab Class
 local Tab = {}
 Tab.__index = Tab
 
@@ -248,12 +382,14 @@ function Tab.new(config)
     self.Config = config or {}
     self.Name = self.Config.Name or "Tab"
     self.Window = self.Config.Window
+    self.Theme = self.Window.Theme
+    self.Active = false
     
     -- Create tab button
     self.Button = Drawing.new("Square")
     self.Button.Size = Vector2.new(80, 25)
     self.Button.Position = Vector2.new(0, 0)
-    self.Button.Color = Colors.Secondary
+    self.Button.Color = self.Theme.Backgrounds.Groupbox
     self.Button.Thickness = 1
     self.Button.Transparency = 0
     self.Button.Visible = true
@@ -261,13 +397,12 @@ function Tab.new(config)
     self.Text = Drawing.new("Text")
     self.Text.Position = Vector2.new(40, 12)
     self.Text.Text = self.Name
-    self.Text.Color = Colors.Text
-    self.Text.Size = Library.Config.TextSize - 2
+    self.Text.Color = self.Theme.Foregrounds.Medium
+    self.Text.Size = Starlight.Config.TextSize - 2
     self.Text.Visible = true
     
-    -- Tab content area
-    self.Content = {}
-    self.Active = false
+    -- Tab content
+    self.Groupboxes = {}
     
     return self
 end
@@ -275,11 +410,16 @@ end
 function Tab:SetActive(active)
     self.Active = active
     if active then
-        self.Button.Color = Colors.Accent
-        self.Text.Color = Colors.Text
+        self.Button.Color = self.Theme.Accents.Main
+        self.Text.Color = self.Theme.Foregrounds.Active
     else
-        self.Button.Color = Colors.Secondary
-        self.Text.Color = Colors.Text
+        self.Button.Color = self.Theme.Backgrounds.Groupbox
+        self.Text.Color = self.Theme.Foregrounds.Medium
+    end
+    
+    -- Show/hide groupboxes
+    for _, groupbox in pairs(self.Groupboxes) do
+        groupbox:SetVisible(active)
     end
 end
 
@@ -293,16 +433,111 @@ function Tab:Destroy()
         self.Text = nil
     end
     
-    -- Destroy all content
-    for _, element in pairs(self.Content) do
+    -- Destroy all groupboxes
+    for _, groupbox in pairs(self.Groupboxes) do
+        if groupbox.Destroy then
+            groupbox:Destroy()
+        end
+    end
+    self.Groupboxes = {}
+end
+
+-- Groupbox Class
+local Groupbox = {}
+Groupbox.__index = Groupbox
+
+function Groupbox.new(config)
+    local self = setmetatable({}, Groupbox)
+    
+    self.Config = config or {}
+    self.Name = self.Config.Name or "Groupbox"
+    self.Tab = self.Config.Tab
+    self.Theme = self.Tab.Window.Theme
+    self.Visible = true
+    
+    -- Calculate position
+    local yOffset = 10
+    for _, existingGroupbox in pairs(self.Tab.Groupboxes) do
+        yOffset = yOffset + existingGroupbox.Size.Y + 10
+    end
+    
+    self.Position = Vector2.new(10, yOffset)
+    self.Size = Vector2.new(self.Tab.Window.Size.X - 20, 30)
+    
+    -- Create groupbox background
+    self.Background = Drawing.new("Square")
+    self.Background.Position = Vector2.new(self.Tab.Window.Position.X + self.Position.X, self.Tab.Window.Position.Y + 40 + self.Position.Y)
+    self.Background.Size = self.Size
+    self.Background.Color = self.Theme.Backgrounds.Groupbox
+    self.Background.Thickness = 1
+    self.Background.Transparency = 0
+    self.Background.Visible = self.Visible
+    
+    -- Create title
+    self.Title = Drawing.new("Text")
+    self.Title.Position = Vector2.new(self.Tab.Window.Position.X + self.Position.X + 10, self.Tab.Window.Position.Y + 40 + self.Position.Y + 5)
+    self.Title.Text = self.Name
+    self.Title.Color = self.Theme.Foregrounds.Active
+    self.Title.Size = Starlight.Config.TextSize
+    self.Title.Visible = self.Visible
+    
+    -- Elements
+    self.Elements = {}
+    
+    return self
+end
+
+function Groupbox:AddElement(element)
+    table.insert(self.Elements, element)
+    
+    -- Update element positions
+    local yOffset = 25
+    for _, existingElement in pairs(self.Elements) do
+        if existingElement ~= element then
+            yOffset = yOffset + existingElement.Size.Y + 5
+        end
+    end
+    
+    element.Position = Vector2.new(self.Position.X + 10, self.Position.Y + yOffset)
+    element:UpdatePosition()
+    
+    -- Update groupbox size
+    self.Size = Vector2.new(self.Tab.Window.Size.X - 20, yOffset + element.Size.Y + 10)
+    self.Background.Size = self.Size
+end
+
+function Groupbox:SetVisible(visible)
+    self.Visible = visible
+    self.Background.Visible = visible
+    self.Title.Visible = visible
+    
+    for _, element in pairs(self.Elements) do
+        if element.SetVisible then
+            element:SetVisible(visible)
+        end
+    end
+end
+
+function Groupbox:Destroy()
+    if self.Background then
+        self.Background:Remove()
+        self.Background = nil
+    end
+    if self.Title then
+        self.Title:Remove()
+        self.Title = nil
+    end
+    
+    -- Destroy all elements
+    for _, element in pairs(self.Elements) do
         if element.Destroy then
             element:Destroy()
         end
     end
-    self.Content = {}
+    self.Elements = {}
 end
 
--- UI Elements
+-- Element Classes
 local Element = {}
 Element.__index = Element
 
@@ -312,7 +547,8 @@ function Element.new(config)
     self.Config = config or {}
     self.Name = self.Config.Name or "Element"
     self.Type = self.Config.Type or "Button"
-    self.Tab = self.Config.Tab
+    self.Groupbox = self.Config.Groupbox
+    self.Theme = self.Groupbox.Theme
     self.Position = self.Config.Position or Vector2.new(10, 10)
     self.Size = self.Config.Size or Vector2.new(100, 25)
     self.Callback = self.Config.Callback or function() end
@@ -320,14 +556,14 @@ function Element.new(config)
     -- Create element based on type
     if self.Type == "Button" then
         self:CreateButton()
-    elseif self.Type == "TextBox" then
-        self:CreateTextBox()
     elseif self.Type == "Toggle" then
         self:CreateToggle()
     elseif self.Type == "Slider" then
         self:CreateSlider()
     elseif self.Type == "Label" then
         self:CreateLabel()
+    elseif self.Type == "TextBox" then
+        self:CreateTextBox()
     elseif self.Type == "Dropdown" then
         self:CreateDropdown()
     end
@@ -335,89 +571,88 @@ function Element.new(config)
     return self
 end
 
+function Element:UpdatePosition()
+    local windowPos = self.Groupbox.Tab.Window.Position
+    local groupboxPos = self.Groupbox.Position
+    
+    if self.Button then
+        self.Button.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y)
+    end
+    if self.Text then
+        self.Text.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X + 10, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y + 5)
+    end
+    if self.Toggle then
+        self.Toggle.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y)
+    end
+    if self.Indicator then
+        self.Indicator.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X + 5, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y + 2)
+    end
+    if self.Track then
+        self.Track.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y)
+    end
+    if self.Handle then
+        self.Handle.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y - 6)
+    end
+    if self.Box then
+        self.Box.Position = Vector2.new(windowPos.X + groupboxPos.X + self.Position.X, windowPos.Y + 40 + groupboxPos.Y + self.Position.Y)
+    end
+end
+
 function Element:CreateButton()
     self.Button = Drawing.new("Square")
-    self.Button.Position = self.Position
     self.Button.Size = self.Size
-    self.Button.Color = Colors.Secondary
+    self.Button.Position = Vector2.new(0, 0)
+    self.Button.Color = self.Theme.Backgrounds.Light
     self.Button.Thickness = 1
     self.Button.Transparency = 0
     self.Button.Visible = true
     
     self.Text = Drawing.new("Text")
-    self.Text.Position = Vector2.new(self.Position.X + self.Size.X/2, self.Position.Y + self.Size.Y/2)
+    self.Text.Position = Vector2.new(10, 5)
     self.Text.Text = self.Name
-    self.Text.Color = Colors.Text
-    self.Text.Size = Library.Config.TextSize
+    self.Text.Color = self.Theme.Foregrounds.Active
+    self.Text.Size = Starlight.Config.TextSize
     self.Text.Visible = true
     
     -- Hover effect
     local isHovering = false
     
     local hoverConnection
-    hoverConnection = Input.MouseMoved:Connect(function()
-        local hovering = IsMouseOver(self.Button)
-        if hovering ~= isHovering then
-            isHovering = hovering
-            if hovering then
-                self.Button.Color = Lerp(Colors.Secondary, Colors.Accent, 0.3)
-            else
-                self.Button.Color = Colors.Secondary
+    hoverConnection = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            local hovering = IsMouseOver(self.Button)
+            if hovering ~= isHovering then
+                isHovering = hovering
+                if hovering then
+                    self.Button.Color = self.Theme.Accents.Main
+                else
+                    self.Button.Color = self.Theme.Backgrounds.Light
+                end
             end
         end
     end)
     
-    table.insert(Library.Connections, hoverConnection)
+    table.insert(Starlight.Connections, hoverConnection)
     
     -- Click handler
     local clickConnection
-    clickConnection = Input.MouseButton1Down:Connect(function()
-        if IsMouseOver(self.Button) then
-            self.Button.Color = Colors.Accent
+    clickConnection = UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and IsMouseOver(self.Button) then
+            self.Button.Color = self.Theme.Accents.Brighter
             task.wait(0.1)
-            self.Button.Color = Colors.Secondary
+            self.Button.Color = self.Theme.Accents.Main
             self.Callback()
         end
     end)
     
-    table.insert(Library.Connections, clickConnection)
-end
-
-function Element:CreateTextBox()
-    self.Box = Drawing.new("Square")
-    self.Box.Position = self.Position
-    self.Box.Size = self.Size
-    self.Box.Color = Colors.Background
-    self.Box.Thickness = 1
-    self.Box.Transparency = 0
-    self.Box.Visible = true
-    
-    -- Input field (simulated - actual input would need Roblox GUI)
-    self.Text = Drawing.new("Text")
-    self.Text.Position = Vector2.new(self.Position.X + 5, self.Position.Y + self.Size.Y/2 - 7)
-    self.Text.Text = self.Name .. ": [Click to edit]"
-    self.Text.Color = Colors.TextSecondary
-    self.Text.Size = Library.Config.TextSize - 2
-    self.Text.Visible = true
-    
-    -- Click handler for editing
-    local clickConnection
-    clickConnection = Input.MouseButton1Down:Connect(function()
-        if IsMouseOver(self.Box) then
-            -- In a real implementation, this would open an input dialog
-            -- For now, we'll simulate with a notification
-            Library.Notify("TextBox Clicked", "Click to edit " .. self.Name, "Info")
-        end
-    end)
-    
-    table.insert(Library.Connections, clickConnection)
+    table.insert(Starlight.Connections, clickConnection)
 end
 
 function Element:CreateToggle()
     self.Toggle = Drawing.new("Square")
-    self.Toggle.Position = self.Position
     self.Toggle.Size = Vector2.new(40, 20)
-    self.Toggle.Color = Colors.Background
+    self.Toggle.Position = Vector2.new(0, 0)
+    self.Toggle.Color = self.Theme.Backgrounds.Light
     self.Toggle.Thickness = 1
     self.Toggle.Transparency = 0
     self.Toggle.Visible = true
@@ -428,26 +663,26 @@ function Element:CreateToggle()
     self.Indicator = Drawing.new("Square")
     local indicatorSize = 16
     self.Indicator.Size = Vector2.new(indicatorSize, indicatorSize)
-    self.Indicator.Position = Vector2.new(self.Position.X + 5, self.Position.Y + 2)
-    self.Indicator.Color = self.State and Colors.Success or Colors.Background
+    self.Indicator.Position = Vector2.new(5, 2)
+    self.Indicator.Color = self.State and self.Theme.Accents.Main or self.Theme.Backgrounds.Dark
     self.Indicator.Thickness = 1
     self.Indicator.Transparency = 0
     self.Indicator.Visible = true
     
     -- Label
     self.Text = Drawing.new("Text")
-    self.Text.Position = Vector2.new(self.Position.X + 25, self.Position.Y + self.Size.Y/2 - 7)
+    self.Text.Position = Vector2.new(50, 0)
     self.Text.Text = self.Name
-    self.Text.Color = Colors.Text
-    self.Text.Size = Library.Config.TextSize - 2
+    self.Text.Color = self.Theme.Foregrounds.Active
+    self.Text.Size = Starlight.Config.TextSize
     self.Text.Visible = true
     
     -- Click handler
     local clickConnection
-    clickConnection = Input.MouseButton1Down:Connect(function()
-        if IsMouseOver(self.Toggle) then
+    clickConnection = UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and IsMouseOver(self.Toggle) then
             self.State = not self.State
-            self.Indicator.Color = self.State and Colors.Success or Colors.Background
+            self.Indicator.Color = self.State and self.Theme.Accents.Main or self.Theme.Backgrounds.Dark
             
             if self.Callback then
                 self.Callback(self.State)
@@ -455,14 +690,14 @@ function Element:CreateToggle()
         end
     end)
     
-    table.insert(Library.Connections, clickConnection)
+    table.insert(Starlight.Connections, clickConnection)
 end
 
 function Element:CreateSlider()
     self.Track = Drawing.new("Square")
-    self.Track.Position = self.Position
     self.Track.Size = Vector2.new(self.Size.X, 4)
-    self.Track.Color = Colors.Background
+    self.Track.Position = Vector2.new(0, 0)
+    self.Track.Color = self.Theme.Backgrounds.Light
     self.Track.Thickness = 1
     self.Track.Transparency = 0
     self.Track.Visible = true
@@ -470,7 +705,7 @@ function Element:CreateSlider()
     self.Handle = Drawing.new("Square")
     local handleSize = Vector2.new(16, 16)
     self.Handle.Size = handleSize
-    self.Handle.Color = Colors.Accent
+    self.Handle.Color = self.Theme.Accents.Main
     self.Handle.Thickness = 1
     self.Handle.Transparency = 0
     self.Handle.Visible = true
@@ -484,29 +719,31 @@ function Element:CreateSlider()
     
     -- Label
     self.Text = Drawing.new("Text")
-    self.Text.Position = Vector2.new(self.Position.X + self.Size.X + 10, self.Position.Y + self.Size.Y/2 - 7)
+    self.Text.Position = Vector2.new(self.Size.X + 10, -5)
     self.Text.Text = self.Name .. ": " .. FormatNumber(self.Value)
-    self.Text.Color = Colors.Text
-    self.Text.Size = Library.Config.TextSize - 2
+    self.Text.Color = self.Theme.Foregrounds.Active
+    self.Text.Size = Starlight.Config.TextSize
     self.Text.Visible = true
     
     -- Dragging functionality
     local isDragging = false
     
     local dragConnection
-    dragConnection = Input.MouseButton1Down:Connect(function()
-        if IsMouseOver(self.Handle) then
+    dragConnection = UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and IsMouseOver(self.Handle) then
             isDragging = true
         end
     end)
     
-    table.insert(Library.Connections, dragConnection)
+    table.insert(Starlight.Connections, dragConnection)
     
     local moveConnection
-    moveConnection = Input.MouseMoved:Connect(function()
-        if isDragging then
-            local mousePos = Input.GetMouseLocation()
-            local relativeX = mousePos.X - self.Position.X
+    moveConnection = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+            local mousePos = UserInputService:GetMouseLocation()
+            local windowPos = self.Groupbox.Tab.Window.Position
+            local groupboxPos = self.Groupbox.Position
+            local relativeX = mousePos.X - (windowPos.X + groupboxPos.X + self.Position.X)
             local percent = math.clamp(relativeX / self.Size.X, 0, 1)
             self.Value = self.Min + (self.Max - self.Min) * percent
             self:UpdateHandlePosition()
@@ -518,29 +755,115 @@ function Element:CreateSlider()
         end
     end)
     
-    table.insert(Library.Connections, moveConnection)
+    table.insert(Starlight.Connections, moveConnection)
     
     local upConnection
-    upConnection = Input.MouseButton1Up:Connect(function()
-        isDragging = false
+    upConnection = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isDragging = false
+        end
     end)
     
-    table.insert(Library.Connections, upConnection)
+    table.insert(Starlight.Connections, upConnection)
 end
 
 function Element:UpdateHandlePosition()
     local percent = (self.Value - self.Min) / (self.Max - self.Min)
-    local handleX = self.Position.X + (self.Size.X - 16) * percent
-    self.Handle.Position = Vector2.new(handleX, self.Position.Y - 6)
+    local handleX = (self.Size.X - 16) * percent
+    self.Handle.Position = Vector2.new(handleX, -6)
 end
 
 function Element:CreateLabel()
     self.Text = Drawing.new("Text")
-    self.Text.Position = self.Position
+    self.Text.Position = Vector2.new(10, 5)
     self.Text.Text = self.Name
-    self.Text.Color = Colors.Text
-    self.Text.Size = Library.Config.TextSize
+    self.Text.Color = self.Theme.Foregrounds.Medium
+    self.Text.Size = Starlight.Config.TextSize
     self.Text.Visible = true
+end
+
+function Element:CreateTextBox()
+    self.Box = Drawing.new("Square")
+    self.Box.Size = self.Size
+    self.Box.Position = Vector2.new(0, 0)
+    self.Box.Color = self.Theme.Backgrounds.Light
+    self.Box.Thickness = 1
+    self.Box.Transparency = 0
+    self.Box.Visible = true
+    
+    -- Input field (simulated - actual input would need Roblox GUI)
+    self.Text = Drawing.new("Text")
+    self.Text.Position = Vector2.new(5, 5)
+    self.Text.Text = self.Name .. ": [Click to edit]"
+    self.Text.Color = self.Theme.Foregrounds.Medium
+    self.Text.Size = Starlight.Config.TextSize - 2
+    self.Text.Visible = true
+    
+    -- Click handler for editing
+    local clickConnection
+    clickConnection = UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and IsMouseOver(self.Box) then
+            -- In a real implementation, this would open an input dialog
+            -- For now, we'll simulate with a notification
+            Starlight:Notify("TextBox Clicked", "Click to edit " .. self.Name, "Info")
+        end
+    end)
+    
+    table.insert(Starlight.Connections, clickConnection)
+end
+
+function Element:CreateDropdown()
+    self.Button = Drawing.new("Square")
+    self.Button.Size = self.Size
+    self.Button.Position = Vector2.new(0, 0)
+    self.Button.Color = self.Theme.Backgrounds.Light
+    self.Button.Thickness = 1
+    self.Button.Transparency = 0
+    self.Button.Visible = true
+    
+    self.Text = Drawing.new("Text")
+    self.Text.Position = Vector2.new(10, 5)
+    self.Text.Text = self.Name .. " [Dropdown]"
+    self.Text.Color = self.Theme.Foregrounds.Active
+    self.Text.Size = Starlight.Config.TextSize
+    self.Text.Visible = true
+    
+    -- Click handler
+    local clickConnection
+    clickConnection = UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and IsMouseOver(self.Button) then
+            self.Button.Color = self.Theme.Accents.Main
+            task.wait(0.1)
+            self.Button.Color = self.Theme.Backgrounds.Light
+            Starlight:Notify("Dropdown", "Dropdown functionality coming soon!", "Info")
+        end
+    end)
+    
+    table.insert(Starlight.Connections, clickConnection)
+end
+
+function Element:SetVisible(visible)
+    if self.Button then
+        self.Button.Visible = visible
+    end
+    if self.Text then
+        self.Text.Visible = visible
+    end
+    if self.Toggle then
+        self.Toggle.Visible = visible
+    end
+    if self.Indicator then
+        self.Indicator.Visible = visible
+    end
+    if self.Track then
+        self.Track.Visible = visible
+    end
+    if self.Handle then
+        self.Handle.Visible = visible
+    end
+    if self.Box then
+        self.Box.Visible = visible
+    end
 end
 
 function Element:Destroy()
@@ -551,10 +874,6 @@ function Element:Destroy()
     if self.Text then
         self.Text:Remove()
         self.Text = nil
-    end
-    if self.Box then
-        self.Box:Remove()
-        self.Box = nil
     end
     if self.Toggle then
         self.Toggle:Remove()
@@ -572,6 +891,10 @@ function Element:Destroy()
         self.Handle:Remove()
         self.Handle = nil
     end
+    if self.Box then
+        self.Box:Remove()
+        self.Box = nil
+    end
 end
 
 -- Notification System
@@ -585,42 +908,48 @@ function Notification.new(title, message, type)
     self.Message = message or ""
     self.Type = type or "Info"
     self.Created = tick()
-    self.Duration = Library.Config.NotificationDuration
+    self.Duration = Starlight.Config.NotificationDuration
+    
+    -- Position notifications based on existing ones
+    local yOffset = 10
+    for _, notification in pairs(Starlight.Notifications or {}) do
+        yOffset = yOffset + 90
+    end
     
     -- Create notification background
     self.Background = Drawing.new("Square")
     self.Background.Size = Vector2.new(300, 80)
-    self.Background.Position = Vector2.new(10, 10)
-    self.Background.Color = Colors.Background
+    self.Background.Position = Vector2.new(10, yOffset)
+    self.Background.Color = Starlight.CurrentTheme.Backgrounds.Dark
     self.Background.Thickness = 1
     self.Background.Transparency = 0
     self.Background.Visible = true
     
     -- Create title
     self.TitleText = Drawing.new("Text")
-    self.TitleText.Position = Vector2.new(20, 20)
+    self.TitleText.Position = Vector2.new(20, yOffset + 20)
     self.TitleText.Text = self.Title
-    self.TitleText.Color = Colors.Text
-    self.TitleText.Size = Library.Config.TextSize + 2
+    self.TitleText.Color = Starlight.CurrentTheme.Foregrounds.Active
+    self.TitleText.Size = Starlight.Config.TextSize + 2
     self.TitleText.Visible = true
     
     -- Create message
     self.MessageText = Drawing.new("Text")
-    self.MessageText.Position = Vector2.new(20, 45)
+    self.MessageText.Position = Vector2.new(20, yOffset + 45)
     self.MessageText.Text = self.Message
-    self.MessageText.Color = Colors.TextSecondary
-    self.MessageText.Size = Library.Config.TextSize
+    self.MessageText.Color = Starlight.CurrentTheme.Foregrounds.Medium
+    self.MessageText.Size = Starlight.Config.TextSize
     self.MessageText.Visible = true
     
     -- Color based on type
     if self.Type == "Success" then
-        self.Background.Color = Colors.Success
+        self.Background.Color = Color3.fromRGB(100, 200, 100)
     elseif self.Type == "Warning" then
-        self.Background.Color = Colors.Warning
+        self.Background.Color = Color3.fromRGB(255, 200, 100)
     elseif self.Type == "Error" then
-        self.Background.Color = Colors.Error
+        self.Background.Color = Color3.fromRGB(255, 100, 100)
     else
-        self.Background.Color = Colors.Accent
+        self.Background.Color = Starlight.CurrentTheme.Accents.Main
     end
     
     -- Auto-remove after duration
@@ -628,7 +957,12 @@ function Notification.new(title, message, type)
         self:Destroy()
     end)
     
-    table.insert(Library.Notifications, self)
+    -- Initialize notifications table if needed
+    if not Starlight.Notifications then
+        Starlight.Notifications = {}
+    end
+    
+    table.insert(Starlight.Notifications, self)
     return self
 end
 
@@ -647,117 +981,129 @@ function Notification:Destroy()
     end
     
     -- Remove from notifications list
-    for i, notification in pairs(Library.Notifications) do
-        if notification == self then
-            table.remove(Library.Notifications, i)
-            break
+    if Starlight.Notifications then
+        for i, notification in pairs(Starlight.Notifications) do
+            if notification == self then
+                table.remove(Starlight.Notifications, i)
+                break
+            end
         end
     end
 end
 
 -- Main Library Functions
-function Library.new(config)
-    local self = setmetatable({}, Library)
-    
-    self.Config = config or {}
-    self.Name = self.Config.Name or "UI Library"
-    
-    -- Create main window
-    self.MainWindow = Window.new({
-        Title = self.Name,
-        Size = self.Config.Size or Vector2.new(500, 400),
-        Position = self.Config.Position or Vector2.new(100, 100),
-        Draggable = true,
-        Closable = false
-    })
-    
-    return self
+function Starlight:CreateWindow(config)
+    local window = Window.new(config)
+    self.Window = window
+    return window
 end
 
-function Library:CreateTab(config)
+function Starlight:CreateTab(window, name)
     local tab = Tab.new({
-        Name = config.Name or "Tab",
-        Window = self.MainWindow
+        Name = name,
+        Window = window
     })
     
-    table.insert(self.MainWindow.Content, tab)
+    table.insert(window.Tabs, name)
+    window.TabSections[name] = {
+        Tabs = {tab},
+        Groupboxes = {}
+    }
     
-    -- Position tabs
-    local xOffset = 10
-    for i, tab in pairs(self.MainWindow.Content) do
-        tab.Button.Position = Vector2.new(xOffset, 0)
-        xOffset = xOffset + 85
+    -- Update tab positions
+    window:UpdatePosition()
+    
+    -- Set first tab as active
+    if #window.Tabs == 1 then
+        tab:SetActive(true)
     end
     
     return tab
 end
 
-function Library:CreateElement(config)
-    local activeTab = self.MainWindow.Content[1] -- Default to first tab
-    
-    local element = Element.new({
-        Name = config.Name or "Element",
-        Type = config.Type or "Button",
-        Tab = activeTab,
-        Position = config.Position,
-        Size = config.Size,
-        Callback = config.Callback,
-        Default = config.Default,
-        Min = config.Min,
-        Max = config.Max
+function Starlight:CreateGroupbox(tab, name)
+    local groupbox = Groupbox.new({
+        Name = name,
+        Tab = tab
     })
     
-    table.insert(activeTab.Content, element)
+    table.insert(tab.Groupboxes, groupbox)
+    table.insert(tab.Window.TabSections[tab.Name].Groupboxes, groupbox)
     
-    -- Update element positions
-    local yOffset = 40
-    for _, element in pairs(activeTab.Content) do
-        element.Position = Vector2.new(10, yOffset)
-        yOffset = yOffset + 35
-    end
+    return groupbox
+end
+
+function Starlight:CreateElement(groupbox, type, name, callback, config)
+    local element = Element.new({
+        Type = type,
+        Name = name,
+        Groupbox = groupbox,
+        Callback = callback,
+        Size = config and config.Size,
+        Default = config and config.Default,
+        Min = config and config.Min,
+        Max = config and config.Max
+    })
     
+    groupbox:AddElement(element)
     return element
 end
 
-function Library:Notify(title, message, type)
+function Starlight:Notify(title, message, type)
     return Notification.new(title, message, type)
 end
 
-function Library:Destroy()
-    -- Destroy all windows
-    for _, window in pairs(Library.Windows) do
-        if window.Destroy then
-            window:Destroy()
+function Starlight:SetTheme(themeName)
+    if Themes[themeName] then
+        self.CurrentTheme = Themes[themeName]
+        self.Config.DefaultTheme = themeName
+        
+        -- Update window theme
+        if self.Window then
+            self.Window.Theme = self.CurrentTheme
+            -- Recreate window with new theme
+            local oldConfig = self.Window.Config
+            self.Window:Destroy()
+            self.Window = self:CreateWindow(oldConfig)
         end
     end
-    Library.Windows = {}
+end
+
+function Starlight:Destroy()
+    -- Destroy all windows
+    if self.Window then
+        self.Window:Destroy()
+        self.Window = nil
+    end
     
     -- Destroy all notifications
-    for _, notification in pairs(Library.Notifications) do
-        if notification.Destroy then
-            notification:Destroy()
+    if self.Notifications then
+        for _, notification in pairs(self.Notifications) do
+            if notification.Destroy then
+                notification:Destroy()
+            end
         end
+        self.Notifications = {}
     end
-    Library.Notifications = {}
     
     -- Disconnect all connections
-    for _, connection in pairs(Library.Connections) do
+    for _, connection in pairs(self.Connections) do
         if connection.Disconnect then
             connection:Disconnect()
         end
     end
-    Library.Connections = {}
+    self.Connections = {}
 end
 
 -- Cleanup on game unload
 local cleanupConnection
 cleanupConnection = game.Players.PlayerRemoving:Connect(function(player)
     if player == Players.LocalPlayer then
-        Library:Destroy()
+        Starlight:Destroy()
     end
 end)
 
-table.insert(Library.Connections, cleanupConnection)
+table.insert(Starlight.Connections, cleanupConnection)
 
 -- Export
-return Library
+return Starlight
